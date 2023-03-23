@@ -1,7 +1,6 @@
 from flask import Flask, render_template, redirect, url_for, request
 import math
 import matplotlib
-matplotlib.use('Agg') 
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
@@ -13,7 +12,8 @@ from math import pi
 import pandas as pd
 import time
 import os
-
+import sqlite3
+matplotlib.use('Agg') 
 
 app = Flask(__name__)
 
@@ -21,21 +21,38 @@ app = Flask(__name__)
 def index():
     return render_template("index.html")
 
-@app.route('/report', methods=['POST', 'GET'])
+@app.route('/landingPage', methods=['POST', 'GET'])
 def report():
-    if request.method == 'POST':
-        
-        # D = float(request.form.get('D'))
-        
-        return render_template("report.html", report=report, figs = figs)
-    
-
-    
-    
-    else:
-        D = request.args.get('D')
+    if request.method != 'POST':
         return render_template("index.html")
-        # return redirect(url_for('showVar', varName =D))
+        
+    username = request.form.get("user")
+    password = request.form.get("pwd")
+    
+    print("USERNAME AND PASSWORD: ", username, password, file=sys.stderr)
+    
+    if username is None:
+        return 
+
+    # Create a new database or connect to an existing one
+    conn = sqlite3.connect('users.db')
+
+    # Create a table for storing user credentials
+    conn.execute('''CREATE TABLE IF NOT EXISTS users
+                (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT NOT NULL UNIQUE,
+                password TEXT NOT NULL);''')
+
+    # Insert the new username and password into the table
+    conn.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
+    conn.commit()
+
+    print("New user added successfully!")
+
+    # Close the database connection
+    conn.close()
+    
+    return render_template("landingPage.html")
 
 @app.route('/createDB')
 def createDB():
