@@ -19,52 +19,116 @@ app = Flask(__name__)
 
 @app.route('/')
 def index():
-    return render_template("index.html")
+    return render_template("login.html")
 
-@app.route('/landingPage', methods=['POST', 'GET'])
-def report():
-    if request.method != 'POST':
-        return render_template("index.html")
-        
-    username = request.form.get("user")
-    password = request.form.get("pwd")
-    
-    print("USERNAME AND PASSWORD: ", username, password, file=sys.stderr)
-    
-    if username is None:
-        return 
+@app.route('/createAccount')
+def createAccount():
+    return render_template("createAccount.html")
 
-    # Create a new database or connect to an existing one
+@app.route('/loginDashboard', methods=['POST'])
+def loginDashboard():
+    uname = request.form.get("uname")
+    pwd = request.form.get("pwd")
+    
+    print("USERNAME AND PASSWORD: ", uname, pwd, file=sys.stderr)
+    
+     # Create a new database or connect to an existing one
     conn = sqlite3.connect('users.db')
+    cur = conn.cursor()
 
     # Create a table for storing user credentials
     conn.execute('''CREATE TABLE IF NOT EXISTS users
                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username TEXT NOT NULL UNIQUE,
-                password TEXT NOT NULL);''')
-
-    # Insert the new username and password into the table
-    conn.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
-    conn.commit()
-
-    print("New user added successfully!")
-
-    # Close the database connection
+                fname TEXT NOT NULL,
+                lname TEXT NOT NULL,
+                cname TEXT NOT NULL UNIQUE,
+                uname TEXT NOT NULL UNIQUE,
+                pwd TEXT NOT NULL);''')
+    
+    cur.execute(f"SELECT * FROM users WHERE uname= ?", (uname,))
+    row = cur.fetchone()
+    
+    cur.close()
     conn.close()
     
-    return render_template("landingPage.html")
+    if row:
+        if row[-1] == pwd:
+            print("Login Successful", file=sys.stderr)
+            return render_template("dashboard.html")
+        else:
+            print("Login Unsuccessful", file=sys.stderr)
+            return render_template("login.html")
+            
+    else:
+        print(f"No row found with uname = {uname}")
+        print("Login Unsuccessful", file=sys.stderr)
+        return render_template("login.html")
 
-@app.route('/createDB')
-def createDB():
-    return render_template("createDB.html")
 
-@app.route('/databaseReport',methods=['POST', 'GET'])
-def databaseReport():
-    if request.method == "POST":
-        report = request.form
-        Dstart  = float(report['Dstart'])    
+@app.route('/dashboard', methods=['POST', 'GET'])
+def dashboard():
+    
+    if request.method != 'POST':
+        return render_template("index.html")
+        
+    fname = request.form.get("fname")
+    lname = request.form.get("lname")
+    cname = request.form.get("cname")
+    uname = request.form.get("uname")
+    pwd = request.form.get("pwd")
+    
+    print("USERNAME AND PASSWORD: ", uname, pwd, file=sys.stderr)
 
-        return render_template("databaseReport.html")
+    # Create a new database or connect to an existing one
+    conn = sqlite3.connect('users.db')
+    cur = conn.cursor()
+
+    # Create a table for storing user credentials
+    conn.execute('''CREATE TABLE IF NOT EXISTS users
+                (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                fname TEXT NOT NULL,
+                lname TEXT NOT NULL,
+                cname TEXT NOT NULL UNIQUE,
+                uname TEXT NOT NULL UNIQUE,
+                pwd TEXT NOT NULL);''')
+
+    # Execute a SQL SELECT statement to search for the string in the database
+    cur.execute('SELECT * FROM users WHERE uname LIKE ?', ('%' + uname + '%',))
+
+    # Fetch the results of the SELECT statement
+    result = cur.fetchall()
+
+    if len(result)>0:
+        print("already in db", file = sys.stderr)
+        cur.close()
+        conn.close()
+        return render_template("createAccount.html", err="true")
+    
+    # Execute a SQL SELECT statement to search for the string in the database
+    cur.execute('SELECT * FROM users WHERE uname LIKE ?', ('%' + cname + '%',))
+
+    # Fetch the results of the SELECT statement
+    result = cur.fetchall()
+    
+    
+    if len(result)>0:
+        print("already in db", file = sys.stderr)
+        cur.close()
+        conn.close()
+        return render_template("createAccount.html", err="true")
+    
+    
+    
+
+    conn.execute("INSERT INTO users (fname, lname, cname, uname, pwd) VALUES (?,?,?,?,?)", (fname, lname, cname, uname, pwd))
+    conn.commit()
+    conn.close()
+
+    print("NEW USER ADDED", file = sys.stderr)    
+    
+    return render_template("dashboard.html")
+    
+
 
 
 if __name__ == "__main__":

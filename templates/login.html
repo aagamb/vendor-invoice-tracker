@@ -9,22 +9,23 @@
       <link rel="preconnect" href="https://fonts.googleapis.com"> 
       <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> 
       <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100&display=swap" rel="stylesheet">
-      <link rel="stylesheet" href="{{url_for('static', filename='css/index.css')}}">
+      <link rel="stylesheet" href="{{url_for('static', filename='css/login.css')}}">
 
 </head>
 <body>
 <!-- partial:index.partial.html -->
 <div class="login-form">
-  <form action="/landingPage" method = 'POST'>
+  <form action="/loginDashboard" method = 'POST'>
     <h1>Login</h1>
     <div class="content">
       <div class="input-field">
-        <input type="text" placeholder="Username" name="user" autocomplete="nope">
+        <input type="text" placeholder="Username" name="uname" autocomplete="nope">
       </div>
       <div class="input-field">
         <input type="password" placeholder="Password" name="pwd" autocomplete="new-password">
       </div>
-      <a href="/" class="link">Forgot Your Password?</a>
+      <a href="#" class="link">Forgot Your Password?</a>
+      <a href="{{url_for('createAccount')}}" class="link">Create New Account</a>
     </div>
     <div class="action">
       <input type="submit" value = "Submit" class= "button" />
@@ -33,7 +34,7 @@
   </form>
 </div>
 <!-- partial -->
-  <script  src="{{url_for('static', filename='js/index.js')}}"></script>
+  <script  src="{{url_for('static', filename='js/login.js')}}"></script>
   <script>
     function reset() {
     document.getElementById("myForm").reset();
