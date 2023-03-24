@@ -25,10 +25,54 @@ def index():
 def createAccount():
     return render_template("createAccount.html")
 
+@app.route('/createAccount', methods=['POST'])
+def storeAccountData():
+    fname = request.form.get("fname")
+    lname = request.form.get("lname")
+    cname = request.form.get("cname")
+    email = request.form.get("email")
+    pwd = request.form.get("pwd")
+    role = request.form.get("role")
+
+    if role == 0:
+        conn = sqlite3.connect('users.db')
+        cur = conn.cursor()
+        cur.execute('''INSERT INTO approver 
+                    (fname, lname, cname, email, pwd) 
+                    VALUES (?,?,?,?,?)''', 
+                    (fname, lname, cname, email, pwd))
+        cur.close()
+        conn.close()
+    elif role == 1:
+        conn = sqlite3.connect('users.db')
+        cur = conn.cursor()
+        cur.execute('''INSERT INTO accounts 
+                    (fname, lname, cname, email, pwd) 
+                    VALUES (?,?,?,?,?)''', 
+                    (fname, lname, cname, email, pwd))
+        cur.close()
+        conn.close()
+    elif role == 2:
+        conn = sqlite3.connect('users.db')
+        cur = conn.cursor()
+        cur.execute('''INSERT INTO vendor 
+                    (fname, lname, vname, vmail, pwd) 
+                    VALUES (?,?,?,?,?)''', 
+                    (fname, lname, cname, email, pwd))
+        cur.close()
+        conn.close()
+    else:
+        print("Error in POST form", file=sys.stderr)
+        return render_template("createAccount.html")
+    
+    return render_template("login.html")
+
+
 @app.route('/loginDashboard', methods=['POST'])
 def loginDashboard():
     uname = request.form.get("uname")
     pwd = request.form.get("pwd")
+    role = request.form.get("role")
     
     print("USERNAME AND PASSWORD: ", uname, pwd, file=sys.stderr)
     
@@ -37,14 +81,31 @@ def loginDashboard():
     cur = conn.cursor()
 
     # Create a table for storing user credentials
-    conn.execute('''CREATE TABLE IF NOT EXISTS users
-                (id INTEGER PRIMARY KEY AUTOINCREMENT,
-                fname TEXT NOT NULL,
-                lname TEXT NOT NULL,
-                cname TEXT NOT NULL UNIQUE,
-                uname TEXT NOT NULL UNIQUE,
-                pwd TEXT NOT NULL);''')
-    
+    if role == 0:
+        conn.execute('''CREATE TABLE IF NOT EXISTS approver
+                    (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    fname TEXT NOT NULL,
+                    lname TEXT NOT NULL,
+                    cname TEXT NOT NULL UNIQUE,
+                    uname TEXT NOT NULL UNIQUE,
+                    pwd TEXT NOT NULL);''')
+    elif role == 1:
+        conn.execute('''CREATE TABLE IF NOT EXISTS accounts
+                    (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    fname TEXT NOT NULL,
+                    lname TEXT NOT NULL,
+                    cname TEXT NOT NULL UNIQUE,
+                    uname TEXT NOT NULL UNIQUE,
+                    pwd TEXT NOT NULL);''')
+    elif role == 2:
+        conn.execute('''CREATE TABLE IF NOT EXISTS vendor
+                    (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    fname TEXT NOT NULL,
+                    lname TEXT NOT NULL,
+                    cname TEXT NOT NULL UNIQUE,
+                    vname TEXT NOT NULL UNIQUE,
+                    vmail TEXT NOT NULL UNIQUE,
+                    pwd TEXT NOT NULL);''')
     cur.execute(f"SELECT * FROM users WHERE uname= ?", (uname,))
     row = cur.fetchone()
     
