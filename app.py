@@ -1,19 +1,24 @@
-from flask import Flask, render_template, redirect, url_for, request
-import math
+from flask import Flask, render_template, request
 import matplotlib
-import matplotlib.pyplot as plt
-import seaborn as sns
-import os
 import sys
-import numpy as np
-from itertools import product
 import math
-from math import pi
-import pandas as pd
-import time
 import os
 import sqlite3
+
 matplotlib.use('Agg') 
+
+def getdbConnection():
+    conn = sqlite3.connect('users.db')
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
+def validate_passwords(pwd1, pwd2):
+    if pwd1 != pwd2:
+        return False
+    return True
+
+
 
 app = Flask(__name__)
 
@@ -31,41 +36,28 @@ def storeAccountData():
     lname = request.form.get("lname")
     cname = request.form.get("cname")
     email = request.form.get("email")
-    pwd = request.form.get("pwd")
-    role = request.form.get("role")
-
-    if role == 0:
-        conn = sqlite3.connect('users.db')
-        cur = conn.cursor()
-        cur.execute('''INSERT INTO approver 
-                    (fname, lname, cname, email, pwd) 
-                    VALUES (?,?,?,?,?)''', 
-                    (fname, lname, cname, email, pwd))
-        cur.close()
-        conn.close()
-    elif role == 1:
-        conn = sqlite3.connect('users.db')
-        cur = conn.cursor()
-        cur.execute('''INSERT INTO accounts 
-                    (fname, lname, cname, email, pwd) 
-                    VALUES (?,?,?,?,?)''', 
-                    (fname, lname, cname, email, pwd))
-        cur.close()
-        conn.close()
-    elif role == 2:
-        conn = sqlite3.connect('users.db')
-        cur = conn.cursor()
-        cur.execute('''INSERT INTO vendor 
-                    (fname, lname, vname, vmail, pwd) 
-                    VALUES (?,?,?,?,?)''', 
-                    (fname, lname, cname, email, pwd))
-        cur.close()
-        conn.close()
-    else:
-        print("Error in POST form", file=sys.stderr)
-        return render_template("createAccount.html")
+    contact = request.form.get("contact")
+    pwd = request.form.get("pwd1")
     
-    return render_template("login.html")
+    conn = getdbConnection()
+    cur = conn.cursor()
+
+    cur.execute("INSERT INTO authorization(user_email, pwd) VALUES (?, ?)", (email, pwd))
+    conn.commit()
+    auth_id = cur.lastrowid
+    print("auth_id: ", auth_id)
+    cur.execute("INSERT INTO company(company_name) VALUES (?);", (cname, ))
+    conn.commit()
+    company_id = cur.lastrowid
+    print("company_id: ", company_id)
+
+    cur.execute('''INSERT INTO users(user_id, first_name, last_name, contact, company_id, user_role)
+                    VALUES (?, ?, ?, ?, ?, ?);''', (auth_id, fname, lname, contact, company_id, 1))
+    conn.commit()
+
+    conn.close()
+    
+    return render_template("login.html", message="Account created successfully! Please login to continue")
 
 
 @app.route('/loginDashboard', methods=['POST'])
