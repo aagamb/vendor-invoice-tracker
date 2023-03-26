@@ -12,12 +12,13 @@
         <link rel="stylesheet" href="{{url_for('static', filename='css/createAccount.css')}}">
 
     </head>
+    
     <body>
         <!-- partial:index.partial.html -->
         <div class="login-form">
             <!--THIS FORM SHOULD REDIRECT BACK TO THE LOGIN PAGE . THAT IS NOT HAPPENING-->
-            <form action="/dashboard" method = 'POST' id="accountCreateForm">
-                <h1>Create New Account</h1>
+            <form onsubmit="return validateForm()" action="/createAccount" method = 'POST' id="accountCreateForm" >
+                <h1>Sign up</h1>
                 <div class="content">
                 <div class="input-field">
                     <label for="fname"> First Name </label>
@@ -32,21 +33,22 @@
                     <input type="text" placeholder="Company Name" name="cname" autocomplete="nope">
                 </div>
                 <div class="input-field">
+                    <label for="contact"> Contact no </label>
+                    <input type="text" placeholder="Contact no" name="contact" autocomplete="nope">
+                </div>
+                <div class="input-field">
                     <label for="email"> User Email </label>
                     <input type="text" placeholder="User Email" name="email" autocomplete="nope">
                 </div>
                 <div class="input-field">
-                    <label for="pwd"> Password </label>
-                    <input type="password" placeholder="Password" name="pwd" autocomplete="nope">
+                    <label for="pwd1"> Password </label>
+                    <input type="password" placeholder="Password" name="pwd1" id="pwd1" autocomplete="nope">
                 </div>
                 <div class="input-field">
-                    <label for="role">Role</label>
-                    <select name="role" id="role_select">
-                        <option value="0">Approver</option>
-                        <option value="1">Accounts</option>
-                        <option value="2">Vendor</option>
-                    </select>
+                    <label for="pwd2"> Confirm Password </label>
+                    <input type="password" placeholder="Confirm Password" name="pwd2" id="pwd2" autocomplete="nope">
                 </div>
+                <span id="message2" style="color:red"> </span> <br><br>  
                     <!--<p  id="errorMessage"> The username or company name is already taken </p> -->
                 <div>
                     <a href="/" class="link">Home</a>
