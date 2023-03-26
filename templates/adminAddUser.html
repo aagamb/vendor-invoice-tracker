@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en" >
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title></title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="preconnect" href="https://fonts.googleapis.com"> 
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> 
+        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="{{url_for('static', filename='css/adminModifyUser.css')}}">
+
+    </head>
+    
+    <body>
+        <!-- partial:index.partial.html -->
+        <div class="login-form">
+            <!--THIS FORM SHOULD REDIRECT BACK TO THE LOGIN PAGE . THAT IS NOT HAPPENING-->
+            <form onsubmit="return validateForm()" action="/adminModifyUser" method = 'POST' id="accountCreateForm" >
+                <h1>Add Employee</h1>
+                <div class="content">
+                <div class="input-field">
+                    <label for="fname"> First Name </label>
+                    <input type="text" placeholder="First Name" name="fname" autocomplete="nope">
+                </div>
+                <div class="input-field">
+                    <label for="lname">Last Name  </label>
+                    <input type="text" placeholder="Last Name" name="lname" autocomplete="nope">
+                </div>
+                <div class="input-field">
+                    <label for="contact"> Contact no </label>
+                    <input type="text" placeholder="Contact no" name="contact" autocomplete="nope">
+                </div>
+                <div class="input-field">
+                    <label for="email"> User Email </label>
+                    <input type="text" placeholder="User Email" name="email" autocomplete="nope">
+                </div>
+                <div class="input-field">
+                    <label for="pwd1"> Password </label>
+                    <input type="password" placeholder="Password" name="pwd1" id="pwd1" autocomplete="nope">
+                </div>
+                <div class="input-field">
+                    <label for="pwd2"> Confirm Password </label>
+                    <input type="password" placeholder="Confirm Password" name="pwd2" id="pwd2" autocomplete="nope">
+                </div>
+                <div>
+                    <input type="radio" id="approver" name="options" value="approver" >
+                    <label for="approver">Approver</label>
+                  </div>
+                  
+                  <div>
+                    <input type="radio" id="accounts" name="options" value="accounts" >
+                    <label for="accounts">Accounts</label>
+                  </div>
+                  
+                  <div>
+                    <input type="radio" id="vendor" name="options" value="vendor" >
+                    <label for="vendor">Vendor</label>
+                  </div>
+                <span id="message2" style="color:red"> </span> <br><br>  
+                    <!--<p  id="errorMessage"> The username or company name is already taken </p> -->
+                <div>
+                    <a href="/dashboard_admin" class="link">Back</a>
+                </div>
+                <div class="action">
+                    <input type="submit" id="submitBtn" value = "Submit" class= "button" />
+                    <input type="button" onclick="reset()" class = "button" value="Reset">
+                </div>
+            </form>
+        </div>
+        <!-- partial -->
+        <script  src="{{url_for('static', filename='js/createAccount.js')}}"></script>
+
+    </body>
+</html>
