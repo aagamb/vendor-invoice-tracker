@@ -1,10 +1,12 @@
 from flask import Flask, render_template, request, url_for, redirect, session
 import sqlite3
 import sys
+import time
 
 uname = None
 company_name = None
 company_id = None
+user_id = None
 
 d = {"approver":2, "accounts":3, "vendor":4}
 
@@ -153,7 +155,7 @@ def dashboard_admin():
     data = cursor.fetchall()
 
     
-
+    # cursor.close()
     conn.close()
     return render_template('dashboard_admin.html', column_names= column_names, data = data)
 
@@ -182,7 +184,7 @@ def storeAdminAccountData():
     conn.commit()
     auth_id = cur.lastrowid
     print("auth_id: ", auth_id)
-    # cur.execute("select * from company where company_name = ?;", (session["cname"], ))
+    cur.execute("select * from company where company_name = ?;", (session["cname"], ))
     # company_id = cur.lastrowid
     print("company_id: ", company_id, sys.stderr)
 
@@ -193,6 +195,85 @@ def storeAdminAccountData():
     conn.close()
     
     return render_template("adminAddUser.html")
+
+@app.route('/adminDeleteUser', methods=['POST'])
+def adminDeleteUser():
+    row_id = request.form['data-row-id']
+    conn = sqlite3.connect('users.db')
+    cur = conn.cursor()
+    cur.execute(f"DELETE FROM users WHERE user_id=?", (row_id,))
+    conn.commit()
+    conn.close()
+    return render_template("dashboard_admin.html")
+
+@app.route("/adminModifyUser")
+def adminModifyUser():
+    return render_template("adminModifyUser.html")
+
+@app.route("/adminModifyUser", methods=['POST'])
+def adminModifyUserForm():
+    global user_id
+    user_id = request.form.get("user_id")
+    
+    conn = getdbConnection()
+    cur = conn.cursor()
+    
+    # cur.execute('''
+    #             UPDATE table_name
+    #             SET column1 = value1, column2 = value2, ...
+    #         W  HERE condition;
+    #             ''', (email, pwd))
+    
+    # Add column names to the cursor
+    cur.execute("PRAGMA table_info(users)")
+    column_names = [col[1] for col in cur.fetchall()]
+
+    # Read the entire table
+    cur.execute("select * from users where user_id=?", (user_id,))
+    data = cur.fetchall()
+    
+    cur.close()
+    conn.close()
+    
+    return render_template("adminModifyUserDetails.html", data = data, column_names = column_names)
+
+@app.route("/adminModifyUserAction", methods = ['POST'])
+def adminModifyUserAction():
+    # user_id = request.form.get("user_id")
+    first_name = request.form.get("first_name")
+    last_name = request.form.get("last_name")
+    contact = request.form.get("contact")
+    role = request.form.get("role")
+    user_id = request.form.get("user_id")
+
+    conn = getdbConnection()
+    cur = conn.cursor()
+
+    cur.execute('''
+        UPDATE users
+        SET first_name = ?,
+            last_name = ?,
+            contact = ?
+        WHERE user_id = ?;
+        ''', (first_name, last_name, contact, user_id))
+    conn.commit()
+    
+    cur.execute('select auth_id from authorization where auth_id=?', (user_id,))
+    data = cur.fetchone()
+    print(data, file=sys.stderr)
+
+    # cur.execute("select * from users where user_id=?", (user_id,))
+    # row = cur.fetchall()
+    # print(row[0], file=sys.stderr)
+
+    cur.close()
+    conn.close()
+
+    
+    
+    return redirect(url_for("dashboard_admin"))
+    
+
 
 #ADMIN DASHBOARD NESTED PAGES ENDS--------------------------------
 
