@@ -161,7 +161,7 @@ def dashboard_admin():
 def create_user():    
     return render_template("adminAddUser.html")
 
-@app.route('/adminModifyUser',  methods=['POST'])
+@app.route('/adminAddUser',  methods=['POST'])
 def storeAdminAccountData():
     
     print("COMPANY NAME IS: ", session.get("cname"), "\n", file = sys.stderr)
@@ -192,7 +192,7 @@ def storeAdminAccountData():
     conn.commit()
     conn.close()
     
-    return render_template("adminModifyUser.html")
+    return render_template("adminAddUser.html")
 
 #ADMIN DASHBOARD NESTED PAGES ENDS--------------------------------
 
