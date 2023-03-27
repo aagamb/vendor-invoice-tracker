@@ -138,7 +138,7 @@ def loginDashboard():
         return render_template("dashboard.html")
     
 
-#DASHBOARD NESTED PAGES --------------------------------
+#ADMIN DASHBOARD NESTED PAGES --------------------------------
 @app.route('/dashboard_admin')
 def dashboard_admin():
     conn = sqlite3.connect('users.db')
@@ -160,7 +160,6 @@ def dashboard_admin():
 @app.route('/adminAddUser')
 def create_user():    
     return render_template("adminAddUser.html")
-
 
 @app.route('/adminModifyUser',  methods=['POST'])
 def storeAdminAccountData():
@@ -195,14 +194,35 @@ def storeAdminAccountData():
     
     return render_template("adminModifyUser.html")
 
-#DASHBOARD NESTED PAGES ENDS--------------------------------
+#ADMIN DASHBOARD NESTED PAGES ENDS--------------------------------
 
-
+#APPROVER DASHBOARD NESTED PAGES --------------------------------
 @app.route('/dashboard_approver')
 def dashboard_approver():
-    print("UNAME FOUND: ", uname, "\n")
-    column_names = ["ab", "c", "d"]
-    return render_template(url_for('dashboard_admin.html', column_names= column_names))
+    conn = sqlite3.connect('users.db')
+    cursor = conn.cursor()
+    
+    # Add column names to the cursor
+    cursor.execute("PRAGMA table_info(users)")
+    column_names = [col[1] for col in cursor.fetchall()]
+
+    # Read the entire table
+    cursor.execute("SELECT * FROM users where company_id=?", (company_id,))
+    data = cursor.fetchall()
+
+    
+
+    conn.close()
+    return render_template('dashboard_admin.html', column_names= column_names, data = data)
+
+#APPROVER DASHBOARD NESTED PAGES ENDS--------------------------------
+
+
+# @app.route('/dashboard_approver')
+# def dashboard_approver():
+#     print("UNAME FOUND: ", uname, "\n")
+#     column_names = ["ab", "c", "d"]
+#     return render_template(url_for('dashboard_admin.html', column_names= column_names))
 
 
 
