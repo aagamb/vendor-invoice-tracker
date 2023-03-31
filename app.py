@@ -157,7 +157,8 @@ def dashboard_admin():
     
     # cursor.close()
     conn.close()
-    return render_template('dashboard_admin.html', column_names= column_names, data = data)
+    return render_template('dashboard_admin.html', column_names=column_names, data=data)
+
 
 @app.route('/adminAddUser')
 def create_user():    
@@ -193,7 +194,8 @@ def storeAdminAccountData():
     
     conn.commit()
     conn.close()
-    
+
+    #TODO: redirect to dashboard_admin
     return render_template("adminAddUser.html")
 
 @app.route('/adminDeleteUser', methods=['POST'])
@@ -204,6 +206,8 @@ def adminDeleteUser():
     cur.execute(f"DELETE FROM users WHERE user_id=?", (row_id,))
     conn.commit()
     conn.close()
+
+    #TODO: redirect to dashboard_admin
     return render_template("dashboard_admin.html")
 
 @app.route("/adminModifyUser")
