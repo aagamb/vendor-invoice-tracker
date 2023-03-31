@@ -214,15 +214,10 @@ def adminModifyUser():
 def adminModifyUserForm():
     global user_id
     user_id = request.form.get("user_id")
+    print("user id: ", user_id, file = sys.stderr)
     
     conn = getdbConnection()
     cur = conn.cursor()
-    
-    # cur.execute('''
-    #             UPDATE table_name
-    #             SET column1 = value1, column2 = value2, ...
-    #         W  HERE condition;
-    #             ''', (email, pwd))
     
     # Add column names to the cursor
     cur.execute("PRAGMA table_info(users)")
@@ -244,27 +239,35 @@ def adminModifyUserAction():
     last_name = request.form.get("last_name")
     contact = request.form.get("contact")
     role = request.form.get("role")
-    user_id = request.form.get("user_id")
+    pwd = request.form.get("pwd")
+    
+    print("user id is: \n\n\n\n", user_id, file = sys.stderr)
 
     conn = getdbConnection()
     cur = conn.cursor()
+
+    cur.execute("select * from users where user_id=?", (user_id,))
+    row = cur.fetchall()
+    print(row[0], file=sys.stderr)
 
     cur.execute('''
         UPDATE users
         SET first_name = ?,
             last_name = ?,
+            user_role =?,
             contact = ?
         WHERE user_id = ?;
-        ''', (first_name, last_name, contact, user_id))
+        ''', (first_name, last_name, role, contact, user_id))
     conn.commit()
     
-    cur.execute('select auth_id from authorization where auth_id=?', (user_id,))
-    data = cur.fetchone()
-    print(data, file=sys.stderr)
+    cur.execute('''
+        UPDATE authorization
+        SET user_email = ?,
+        pwd = ?
+        WHERE auth_id = ?;
+        ''', (contact, pwd, user_id))
 
-    # cur.execute("select * from users where user_id=?", (user_id,))
-    # row = cur.fetchall()
-    # print(row[0], file=sys.stderr)
+    
 
     cur.close()
     conn.close()
