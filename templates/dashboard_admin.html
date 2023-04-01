@@ -45,11 +45,13 @@ head %}
                             <td>{{ cell }}</td>
                             {% endfor %}
                             <td>
+                                {% if row[0] != 1%}
                                 <button
                                     class="btn btn-danger row-action-btn"
                                     data-row-id="{{ row[0] }}">
                                     Delete
                                 </button>
+                                {% endif %}
                             </td>
                         </tr>
                         {% endfor %}

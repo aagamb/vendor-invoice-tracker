@@ -90,12 +90,12 @@ def loginDashboard():
     if not row:
         print(f"No row found with uname = {uname}")
         print("Login Unsuccessful", file=sys.stderr)
-        return render_template("login.html")
+        return render_template("login.html", errmsg="Authentication failed")
         
     #The username has been found in the table, password does not match  
     if row[-1] != pwd:
         print("Login Unsuccessful", file=sys.stderr)
-        return render_template("login.html")
+        return render_template("login.html", errmsg="Authentication failed", usrname=uname)
     
     #Authentication successful
     print("Login Successful", file=sys.stderr)
@@ -181,7 +181,8 @@ def storeAdminAccountData():
     conn = getdbConnection()
     cur = conn.cursor()
 
-    cur.execute("INSERT INTO authorization(user_email, pwd) VALUES (?, ?)", (email, pwd))
+    ret = cur.execute("INSERT INTO authorization(user_email, pwd) VALUES (?, ?)", (email, pwd))
+    print(ret)
     conn.commit()
     auth_id = cur.lastrowid
     print("auth_id: ", auth_id)
@@ -195,20 +196,21 @@ def storeAdminAccountData():
     conn.commit()
     conn.close()
 
-    #TODO: redirect to dashboard_admin
-    return render_template("adminAddUser.html")
+    return redirect(url_for("dashboard_admin"))
 
 @app.route('/adminDeleteUser', methods=['POST'])
 def adminDeleteUser():
     row_id = request.form['data-row-id']
     conn = sqlite3.connect('users.db')
     cur = conn.cursor()
+    print("deleting user", row_id)
     cur.execute(f"DELETE FROM users WHERE user_id=?", (row_id,))
+    cur.execute(f"DELETE FROM authorization WHERE auth_id=?", (row_id,))
     conn.commit()
     conn.close()
 
     #TODO: redirect to dashboard_admin
-    return render_template("dashboard_admin.html")
+    return redirect(url_for("dashboard_admin"))
 
 @app.route("/adminModifyUser")
 def adminModifyUser():

@@ -21,13 +21,16 @@
             <form action="/loginDashboard" method="POST">
                 <h1>Login</h1>
                 <div class="content">
+                    <p style="color: red;">{{errmsg}}</p>
                     <div class="input-field">
                         <input
                             type="text"
                             placeholder="Username"
                             name="uname"
-                            autocomplete="nope" />
+                            autocomplete="nope"
+                            value="{{usrname}}" />
                     </div>
+                    
                     <div class="input-field">
                         <input
                             type="password"
@@ -35,8 +38,8 @@
                             name="pwd"
                             autocomplete="new-password" />
                     </div>
-                    <a href="#" class="link">Forgot Your Password?</a>
-                    <a href="{{url_for('createAccount')}}" class="link">Create New Account</a>
+                    <a href="#" class="link"><p style="color: #2055e6; float: right;">Forgot Your Password?</p></a>
+                    <a href="{{url_for('createAccount')}}" class="link"><p style="color: #2055e6; float: right;">Create New Account</p></a>
                 </div>
                 <div class="action">
                     <input type="submit" value="Submit" class="button" />

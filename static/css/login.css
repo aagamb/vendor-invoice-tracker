@@ -16,6 +16,10 @@ body {
   height: 100vh;
 }
 
+.w-href {
+  padding: 30px;
+}
+
 /* Login form styles */
 .login-form {
   background-color: #fff;
