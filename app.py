@@ -2,11 +2,15 @@ from flask import Flask, render_template, request, url_for, redirect, session
 import sqlite3
 import sys
 import time
+import os
+from werkzeug.utils import secure_filename
+from uuid import uuid4
 
 uname = None
 company_name = None
 company_id = None
 user_id = None
+vendor_id = None
 
 d = {"approver":2, "accounts":3, "vendor":4}
 
@@ -21,10 +25,15 @@ def validate_passwords(pwd1, pwd2):
         return False
     return True
 
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
 
 app = Flask(__name__)
 app.secret_key = "my_secret_key"
+
+app.config['UPLOAD_FOLDER'] = 'invoices'
+app.config['ALLOWED_EXTENSIONS'] = {'pdf'}
 
 
 
@@ -44,6 +53,11 @@ def storeAccountData():
     email = request.form.get("email")
     contact = request.form.get("contact")
     pwd = request.form.get("pwd1")
+    
+    # company_name    = request.form.get("company_name")
+    company_addr    = request.form.get("company_addr")
+    gstno           = request.form.get("gstno")
+    company_contact = request.form.get("company_contact")
     
     conn = getdbConnection()
     cur = conn.cursor()
@@ -131,13 +145,13 @@ def loginDashboard():
         return redirect(url_for("dashboard_admin"))
     elif row[-1] == 2:
         print("\nApprover LOGIN ENTERED\n")
-        return render_template("dashboard.html")
+        return redirect(url_for("dashboard_approver"))
     elif row[-1] == 3:
         print("\nAccounts LOGIN ENTERED\n")
-        return render_template("dashboard.html")
+        return redirect(url_for("dashboard_login"))
     else:
         print("\nVendor LOGIN ENTERED\n")
-        return render_template("dashboard.html")
+        return redirect(url_for("dashboard_vendor"))
     
 
 #ADMIN DASHBOARD NESTED PAGES --------------------------------
@@ -158,7 +172,6 @@ def dashboard_admin():
     # cursor.close()
     conn.close()
     return render_template('dashboard_admin.html', column_names=column_names, data=data)
-
 
 @app.route('/adminAddUser')
 def create_user():    
@@ -247,7 +260,7 @@ def adminModifyUserAction():
     role = request.form.get("role")
     pwd = request.form.get("pwd")
     
-    print("user id is: \n\n\n\n", user_id, file = sys.stderr)
+    print("user id is: ", user_id,  "\n" , file = sys.stderr)
 
     conn = getdbConnection()
     cur = conn.cursor()
@@ -272,8 +285,7 @@ def adminModifyUserAction():
         pwd = ?
         WHERE auth_id = ?;
         ''', (contact, pwd, user_id))
-
-    
+    conn.commit()
 
     cur.close()
     conn.close()
@@ -282,8 +294,6 @@ def adminModifyUserAction():
     
     return redirect(url_for("dashboard_admin"))
     
-
-
 #ADMIN DASHBOARD NESTED PAGES ENDS--------------------------------
 
 #APPROVER DASHBOARD NESTED PAGES --------------------------------
@@ -303,16 +313,89 @@ def dashboard_approver():
     
 
     conn.close()
-    return render_template('dashboard_admin.html', column_names= column_names, data = data)
+    return render_template('dashboard_approver.html', column_names= column_names, data = data)
 
 #APPROVER DASHBOARD NESTED PAGES ENDS--------------------------------
 
+#VENDOR DASHBOARD NESTED PAGES --------------------------------
 
-# @app.route('/dashboard_approver')
-# def dashboard_approver():
-#     print("UNAME FOUND: ", uname, "\n")
-#     column_names = ["ab", "c", "d"]
-#     return render_template(url_for('dashboard_admin.html', column_names= column_names))
+@app.route('/dashboard_vendor')
+def dashboard_vendor():
+    conn = sqlite3.connect('users.db')
+    cursor = conn.cursor()
+    
+    # Add column names to the cursor
+    cursor.execute("PRAGMA table_info(invoice)")
+    column_names = [col[1] for col in cursor.fetchall()]
+    column_names = ["Invoice Date", "Invoice Amount", "Company Invoiced ID", "Invoice Status"]
+
+    cursor.execute("select company_name from company where company_id = ?", (company_id,))
+    cname = cursor.fetchall()[0]
+    # Read the entire table
+    cursor.execute("select invoice_date, invoice_amt, invoice_client, invoice_status from invoice join (select * from company where company_id=?)", (company_id,))
+    data = cursor.fetchall()
+    
+    print(data, file = sys.stderr)
+
+    # cursor.close()
+    conn.close()
+    return render_template("dashboard_vendor.html", column_names = column_names, data = data )
+
+@app.route('/vendorAddInvoice')
+def vendorAddInvoice():
+    return render_template("vendorAddInvoice.html")
+
+@app.route('/vendorAddInvoice', methods=['POST'])
+def vendorAddInvoiceAction():
+    if 'file' not in request.files:
+        return "No file part", 400
+
+    file = request.files['file']
+
+    if file.filename == '':
+        return "No selected file", 400
+
+    if file and allowed_file(file.filename):
+        filename = f"{uuid4().hex}_{secure_filename(file.filename)}"
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(file_path)
+
+        invoice_no = request.form['invoice_no']
+        invoice_date = request.form['invoice_date']
+        invoice_amt = request.form['invoice_amt']
+        invoice_client = request.form['invoice_client']
+
+        # Save the file path and other invoice details in the database
+        conn = getdbConnection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            "INSERT INTO invoice (invoice_no, invoice_date, invoice_amt, invoice_vendor ,invoice_client, invoice_status, invoice_file) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (invoice_no, invoice_date, invoice_amt, company_id, invoice_client, "pending for approver", file_path)
+        )
+        conn.commit()
+
+        cursor.close()
+        conn.close()
+
+        return redirect(url_for("dashboard_vendor"))
+
+    return "File type not allowed", 400
+
+@app.route('/vendorDeleteInvoice', methods=['POST'])
+def vendorDeleteInvoice():
+    row_id = request.form['data-row-id']
+    conn = sqlite3.connect('users.db')
+    cur = conn.cursor()
+    print("deleting user", row_id, file = sys.stderr)
+    cur.execute(f"DELETE FROM invoice WHERE invoice_date=?", (row_id,))
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    return redirect(url_for("dashboard_vendor"))
+    
+#VENDOR DASHBOARD NESTED PAGES ENDS--------------------------------
 
 
 
