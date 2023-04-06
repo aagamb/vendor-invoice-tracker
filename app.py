@@ -148,7 +148,7 @@ def loginDashboard():
         return redirect(url_for("dashboard_approver"))
     elif row[-1] == 3:
         print("\nAccounts LOGIN ENTERED\n")
-        return redirect(url_for("dashboard_login"))
+        return redirect(url_for("dashboard_accounts"))
     else:
         print("\nVendor LOGIN ENTERED\n")
         return redirect(url_for("dashboard_vendor"))
@@ -161,13 +161,12 @@ def dashboard_admin():
     cursor = conn.cursor()
     
     # Add column names to the cursor
-    cursor.execute("PRAGMA table_info(users)")
-    column_names = [col[1] for col in cursor.fetchall()]
+    column_names = ["First Name", "Last Name", "Contact", "User Role"]
 
     # Read the entire table
-    cursor.execute("SELECT * FROM users where company_id=?", (company_id,))
+    cursor.execute("""SELECT u.first_name, u.last_name, u.contact, r.role FROM users u JOIN role r ON u.user_role = r.role_id WHERE u.company_id=?""", (company_id,))
     data = cursor.fetchall()
-
+    print(data)
     
     # cursor.close()
     conn.close()
@@ -207,6 +206,73 @@ def storeAdminAccountData():
                     VALUES (?, ?, ?, ?, ?, ?);''', (auth_id, fname, lname, contact, company_id, d[role]))
     
     conn.commit()
+    conn.close()
+
+    return redirect(url_for("dashboard_admin"))
+
+
+@app.route('/adminListVendors')
+def list_vendors():
+    conn = sqlite3.connect('users.db')
+    cursor = conn.cursor()
+    
+    # Add column names to the cursor
+    column_names = ["Company Name", "First Name", "Last Name", "Email", "Contact", "GST Number"]
+
+    # Read the entire table
+    cursor.execute("""SELECT u.first_name, u.last_name, u.contact, r.role FROM users u JOIN role r ON u.user_role = r.role_id WHERE u.company_id=?""", (company_id,))
+    data = cursor.fetchall()
+    print(data)
+    
+    # cursor.close()
+    conn.close()
+    return render_template('adminListVendors.html', column_names=column_names, data=data)
+
+
+@app.route('/adminRegisterVendor')
+def create_vendor():    
+    return render_template("adminRegisterVendor.html")
+
+@app.route('/adminRegisterVendor',  methods=['POST'])
+def storeVendorAccountData():
+    
+    print("COMPANY NAME IS (Inside vendor): ", session.get("cname"), "\n", file = sys.stderr)
+    fname = request.form.get("fname")
+    lname = request.form.get("lname")
+    contact = request.form.get("contact")
+    company_name = request.form.get("company_name")
+    company_addr = request.form.get("company_addr")
+    company_contact = request.form.get("company_contact")
+    gstno = request.form.get("gstno")
+    
+    email = request.form.get("email")
+    contact = request.form.get("contact")
+    pwd = request.form.get("pwd1")
+    role = "vendor"
+    
+    print("ROLE: ", role)
+    
+    conn = getdbConnection()
+    cur = conn.cursor()
+
+    ret = cur.execute("INSERT INTO authorization(user_email, pwd) VALUES (?, ?)", (email, pwd))
+    print(ret)
+    conn.commit()
+    auth_id = cur.lastrowid
+    print("auth_id: ", auth_id)
+    cur.execute("""INSERT INTO company(company_name, company_addr, gstno, company_contact) 
+                    VALUES (?, ?, ?, ?);""", (company_name, company_addr, gstno, company_contact))
+    conn.commit()
+    company_id = cur.lastrowid
+    print("company_id: ", company_id)
+
+    cur.execute('''INSERT INTO users(user_id, first_name, last_name, contact, company_id, user_role)
+                    VALUES (?, ?, ?, ?, ?, ?);''', (auth_id, fname, lname, contact, company_id, d[role]))
+    conn.commit()
+
+    cur.execute("""INSERT INTO vendor_company_rel(vendor_id, client_id) VALUES(?, ?)""", (auth_id, session["company_id"]))
+    conn.commit()
+
     conn.close()
 
     return redirect(url_for("dashboard_admin"))
@@ -307,7 +373,7 @@ def dashboard_approver():
     column_names = [col[1] for col in cursor.fetchall()]
 
     # Read the entire table
-    cursor.execute("SELECT * FROM users where company_id=?", (company_id,))
+    cursor.execute("SELECT * FROM invoice WHERE invoice_client=? AND invoice_status=3", (company_id,))
     data = cursor.fetchall()
 
     
@@ -371,7 +437,7 @@ def vendorAddInvoiceAction():
 
         cursor.execute(
             "INSERT INTO invoice (invoice_no, invoice_date, invoice_amt, invoice_vendor ,invoice_client, invoice_status, invoice_file) VALUES (?, ?, ?, ?, ?, ?, ?)",
-            (invoice_no, invoice_date, invoice_amt, company_id, invoice_client, "pending for approver", file_path)
+            (invoice_no, invoice_date, invoice_amt, company_id, invoice_client, 3, file_path)
         )
         conn.commit()
 
@@ -396,6 +462,31 @@ def vendorDeleteInvoice():
     return redirect(url_for("dashboard_vendor"))
     
 #VENDOR DASHBOARD NESTED PAGES ENDS--------------------------------
+
+#ACCOUNTS DASHBOARD NESTED PAGES--------------------------------
+@app.route("/dashboard_accounts")
+def dashboard_accounts():
+    conn = sqlite3.connect('users.db')
+    cursor = conn.cursor()
+    
+    # Add column names to the cursor
+    cursor.execute("PRAGMA table_info(invoice)")
+    column_names = [col[1] for col in cursor.fetchall()]
+    column_names = ["Invoice Date", "Invoice Amount", "Company Invoiced ID"]
+
+    cursor.execute("select company_name from company where company_id = ?", (company_id,))
+    cname = cursor.fetchall()[0]
+    # Read the entire table
+    cursor.execute("select invoice_date, invoice_amt, invoice_client, invoice_status from invoice join (select * from company where company_id=?) where invoice_status=1", (company_id,))
+    data = cursor.fetchall()
+    
+    print(data, file = sys.stderr)
+
+    # cursor.close()
+    conn.close()
+    return render_template("dashboard_vendor.html", column_names = column_names, data = data )
+
+#ACCOUNTS DASHBOARD NESTED PAGES ENDS--------------------------------
 
 
 

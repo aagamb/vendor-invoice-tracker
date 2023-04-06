@@ -51,29 +51,46 @@ conn.execute('''
             ''')
 
 conn.execute('''
+                CREATE TABLE IF NOT EXISTS invoice_status (
+                    invoice_status_id  INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    invoice_status     TEXT
+                );
+            ''')
+
+conn.execute("INSERT INTO invoice_status (invoice_status) VALUES (?)", ("Approved", ));
+conn.execute("INSERT INTO invoice_status (invoice_status) VALUES (?)", ("Rejected", ));
+conn.execute("INSERT INTO invoice_status (invoice_status) VALUES (?)", ("Pending Approval", ));
+conn.execute("INSERT INTO invoice_status (invoice_status) VALUES (?)", ("Payment Complete", ));
+conn.execute("INSERT INTO invoice_status (invoice_status) VALUES (?)", ("Payment Rejected", ));
+
+conn.execute('''
                 CREATE TABLE IF NOT EXISTS invoice (
-                    invoice_id      INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-                    invoice_no      TEXT,
-                    invoice_date    TEXT,
-                    invoice_amt     TEXT,
-                    invoice_vendor  INTEGER,
-                    invoice_client  INTEGER,
-                    invoice_status  INTEGER,
-                    invoice_file    TEXT,
+                    invoice_id          INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    invoice_no          TEXT,
+                    invoice_date        TEXT,
+                    invoice_amt         TEXT,
+                    invoice_vendor      INTEGER,
+                    invoice_client      INTEGER,
+                    invoice_status_id   INTEGER,
+                    invoice_file        TEXT,
                     FOREIGN KEY(invoice_vendor) 
                         REFERENCES company(company_id),
                     FOREIGN KEY(invoice_client) 
-                        REFERENCES company(company_id)
+                        REFERENCES company(company_id),
+                    FOREIGN KEY(invoice_status) 
+                        REFERENCES invoice_status(invoice_status_id)
                 );
             ''')
 
 conn.execute('''
                 CREATE TABLE IF NOT EXISTS invoice_state (
-                    invoice_id      INTEGER ,
-                    log_date        TEXT,
-                    invoice_status  INTEGER,
+                    invoice_id          INTEGER ,
+                    log_date            TEXT,
+                    invoice_status_id   INTEGER,
                     FOREIGN KEY(invoice_id) 
-                        REFERENCES invoice(invoice_id)
+                        REFERENCES invoice(invoice_id),
+                    FOREIGN KEY(invoice_status) 
+                        REFERENCES invoice_status(invoice_status_id)
                 );
             ''')
 

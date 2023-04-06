@@ -9,16 +9,15 @@
         <link rel="preconnect" href="https://fonts.googleapis.com"> 
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> 
         <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100&display=swap" rel="stylesheet">
-        <link rel="stylesheet" href="{{url_for('static', filename='css/createAccount.css')}}">
+        <link rel="stylesheet" href="{{url_for('static', filename='css/adminModifyUser.css')}}">
 
     </head>
     
     <body>
         <!-- partial:index.partial.html -->
         <div class="login-form">
-            <!--THIS FORM SHOULD REDIRECT BACK TO THE LOGIN PAGE . THAT IS NOT HAPPENING-->
-            <form onsubmit="return validateForm()" action="/createAccount" method = 'POST' id="accountCreateForm" >
-                <h1>Sign up</h1>
+            <form onsubmit="return validateForm()" action="/adminRegisterVendor" method = 'POST' id="accountCreateForm" >
+                <h1>Add Employee</h1>
                 <div class="content">
                 <div class="input-field">
                     <label for="fname"> First Name </label>
@@ -29,28 +28,9 @@
                     <input type="text" placeholder="Last Name" name="lname" autocomplete="nope">
                 </div>
                 <div class="input-field">
-                    <label for="cname"> Company Name </label>
-                    <input type="text" placeholder="Company Name" name="cname" autocomplete="nope">
-                </div>
-                <div class="input-field">
                     <label for="contact"> Contact no </label>
                     <input type="text" placeholder="Contact no" name="contact" autocomplete="nope">
                 </div>
-                <div class="input-field">
-                    <label for="email"> User Email </label>
-                    <input type="text" placeholder="User Email" name="email" autocomplete="nope">
-                </div>
-                <div class="input-field">
-                    <label for="pwd1"> Password </label>
-                    <input type="password" placeholder="Password" name="pwd1" id="pwd1" autocomplete="nope">
-                </div>
-                <div class="input-field">
-                    <label for="pwd2"> Confirm Password </label>
-                    <input type="password" placeholder="Confirm Password" name="pwd2" id="pwd2" autocomplete="nope">
-                </div>
-                <h3>
-                    Company Details
-                </h3>
                 <div class="input-field">
                     <label for="company_addr"> Company Name </label>
                     <input type="text" placeholder="Confirm Password" name="company_name" id="company_name" autocomplete="nope">
@@ -67,10 +47,22 @@
                     <label for="gstno"> GST No. </label>
                     <input type="text" placeholder="Confirm Password" name="gstno" id="gstno" autocomplete="nope">
                 </div>
+                <div class="input-field">
+                    <label for="email"> User Email </label>
+                    <input type="text" placeholder="User Email" name="email" autocomplete="nope">
+                </div>
+                <div class="input-field">
+                    <label for="pwd1"> Password </label>
+                    <input type="password" placeholder="Password" name="pwd1" id="pwd1" autocomplete="nope">
+                </div>
+                <div class="input-field">
+                    <label for="pwd2"> Confirm Password </label>
+                    <input type="password" placeholder="Confirm Password" name="pwd2" id="pwd2" autocomplete="nope">
+                </div>
                 <span id="message2" style="color:red"> </span> <br><br>  
                     <!--<p  id="errorMessage"> The username or company name is already taken </p> -->
                 <div>
-                    <a href="/" class="link">Home</a>
+                    <a href="/dashboard_admin" class="link">Back</a>
                 </div>
                 <div class="action">
                     <input type="submit" id="submitBtn" value = "Submit" class= "button" />
