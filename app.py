@@ -1,10 +1,11 @@
-from flask import Flask, render_template, request, url_for, redirect, session
+from flask import Flask, render_template, request, url_for, redirect, session, send_file
 import sqlite3
 import sys
 import time
 import os
 from werkzeug.utils import secure_filename
 from uuid import uuid4
+import io
 
 uname = None
 company_name = None
@@ -134,6 +135,7 @@ def loginDashboard():
     session["company_id"] = cid[0]
     global company_id
     company_id = cid[0]
+    print("\ncompany_id: ", company_id, file = sys.stderr)
     
     
     
@@ -228,7 +230,6 @@ def list_vendors():
     conn.close()
     return render_template('adminListVendors.html', column_names=column_names, data=data)
 
-
 @app.route('/adminRegisterVendor')
 def create_vendor():    
     return render_template("adminRegisterVendor.html")
@@ -288,7 +289,6 @@ def adminDeleteUser():
     conn.commit()
     conn.close()
 
-    #TODO: redirect to dashboard_admin
     return redirect(url_for("dashboard_admin"))
 
 @app.route("/adminModifyUser")
@@ -369,17 +369,74 @@ def dashboard_approver():
     cursor = conn.cursor()
     
     # Add column names to the cursor
-    cursor.execute("PRAGMA table_info(users)")
+    cursor.execute("PRAGMA table_info(invoice)")
     column_names = [col[1] for col in cursor.fetchall()]
+    column_names = ["Invoice Id", "Invoice Date", "Invoice Amount", "Invoiced By (invoice_vendor)"]
 
     # Read the entire table
-    cursor.execute("SELECT * FROM invoice WHERE invoice_client=? AND invoice_status=3", (company_id,))
+    cursor.execute("SELECT invoice_id, invoice_date, invoice_amt, invoice_vendor FROM invoice WHERE invoice_client=? AND invoice_status=3", (company_id,))
     data = cursor.fetchall()
-
-    
 
     conn.close()
     return render_template('dashboard_approver.html', column_names= column_names, data = data)
+
+@app.route('/downloadFile', methods = ['POST'])
+def download_file():
+    row_id = request.form['data-row-id']
+    conn = sqlite3.connect('users.db')
+    cur = conn.cursor()
+
+    cur.execute("SELECT invoice_file FROM invoice WHERE invoice_id = ?", (row_id,))
+    data = cur.fetchone()[0]
+
+    cur.close()
+    conn.close()
+    return send_file(data, as_attachment=True)
+
+@app.route("/approverApproved", methods=['POST'])
+def approverApprovedAction():
+    row_id = request.form['data-row-id']
+    
+    conn = sqlite3.connect('users.db')
+    cur = conn.cursor()
+
+    cur.execute('''
+        UPDATE invoice
+        SET invoice_status = 2
+        WHERE invoice_id = ?;
+        ''', (row_id,))
+    conn.commit()
+    
+    print(row_id, file = sys.stderr)
+
+
+    cur.close()
+    conn.close()
+    
+    return redirect(url_for("dashboard_approver"))
+    
+@app.route("/approverRejected", methods=['POST'])
+def approverRejectedAction():
+    row_id = request.form['data-row-id']
+    
+    conn = sqlite3.connect('users.db')
+    cur = conn.cursor()
+
+    cur.execute('''
+        UPDATE invoice
+        SET invoice_status = 4
+        WHERE invoice_id = ?;
+        ''', (row_id,))
+    conn.commit()
+    
+    print(row_id, file = sys.stderr)
+
+
+    cur.close()
+    conn.close()
+    
+    return redirect(url_for("dashboard_approver"))
+    
 
 #APPROVER DASHBOARD NESTED PAGES ENDS--------------------------------
 
@@ -472,19 +529,61 @@ def dashboard_accounts():
     # Add column names to the cursor
     cursor.execute("PRAGMA table_info(invoice)")
     column_names = [col[1] for col in cursor.fetchall()]
-    column_names = ["Invoice Date", "Invoice Amount", "Company Invoiced ID"]
+    column_names = ["Invoice Id", "Invoice Date", "Invoice Amount", "Company Invoiced ID", "Invoice Status"]
 
     cursor.execute("select company_name from company where company_id = ?", (company_id,))
     cname = cursor.fetchall()[0]
     # Read the entire table
-    cursor.execute("select invoice_date, invoice_amt, invoice_client, invoice_status from invoice join (select * from company where company_id=?) where invoice_status=1", (company_id,))
+    cursor.execute("select invoice_id, invoice_date, invoice_amt, invoice_client, invoice_status from invoice join (select * from company where company_id=?) where invoice_status=2", (company_id,))
     data = cursor.fetchall()
     
     print(data, file = sys.stderr)
 
     # cursor.close()
     conn.close()
-    return render_template("dashboard_vendor.html", column_names = column_names, data = data )
+    return render_template("dashboard_accounts.html", column_names = column_names, data = data )
+
+@app.route("/accountsApproved", methods=['POST'])
+def accountsApprovedAction():
+    row_id = request.form['data-row-id']
+    
+    conn = sqlite3.connect('users.db')
+    cur = conn.cursor()
+
+    cur.execute('''
+        UPDATE invoice
+        SET invoice_status = 1
+        WHERE invoice_id = ?;
+        ''', (row_id,))
+    conn.commit()
+    
+    print(row_id, file = sys.stderr)
+
+
+    cur.close()
+    conn.close()
+    
+    return redirect(url_for("dashboard_accounts"))
+    
+@app.route("/accountsRejected", methods=['POST'])
+def accountsRejectedAction():
+    row_id = request.form['data-row-id']
+    
+    conn = sqlite3.connect('users.db')
+    cur = conn.cursor()
+
+    cur.execute('''
+        UPDATE invoice
+        SET invoice_status = 4
+        WHERE invoice_id = ?;
+        ''', (row_id,))
+    conn.commit()
+
+    cur.close()
+    conn.close()
+    
+    return redirect(url_for("dashboard_accounts"))
+    
 
 #ACCOUNTS DASHBOARD NESTED PAGES ENDS--------------------------------
 
