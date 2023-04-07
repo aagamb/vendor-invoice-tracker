@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, url_for, redirect, session, send_file
+from flask_mail import Mail, Message
 import sqlite3
 import sys
 import time
@@ -483,7 +484,7 @@ def vendorAddInvoiceAction():
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(file_path)
 
-        invoice_no = request.form['invoice_no']
+        # invoice_no = request.form['invoice_no']
         invoice_date = request.form['invoice_date']
         invoice_amt = request.form['invoice_amt']
         invoice_client = request.form['invoice_client']
@@ -493,8 +494,8 @@ def vendorAddInvoiceAction():
         cursor = conn.cursor()
 
         cursor.execute(
-            "INSERT INTO invoice (invoice_no, invoice_date, invoice_amt, invoice_vendor ,invoice_client, invoice_status, invoice_file) VALUES (?, ?, ?, ?, ?, ?, ?)",
-            (invoice_no, invoice_date, invoice_amt, company_id, invoice_client, 3, file_path)
+            "INSERT INTO invoice (invoice_date, invoice_amt, invoice_vendor ,invoice_client, invoice_status, invoice_file) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (invoice_date, invoice_amt, company_id, invoice_client, 3, file_path)
         )
         conn.commit()
 
