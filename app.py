@@ -523,15 +523,15 @@ def vendorAddInvoiceAction():
         cursor = conn.cursor()
 
         cursor.execute(
-            "INSERT INTO invoice (invoice_date, invoice_amt, invoice_vendor ,invoice_client, invoice_status, invoice_file) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO invoice (invoice_date, invoice_amt, invoice_vendor ,invoice_client, invoice_status, invoice_file) VALUES (?, ?, ?, ?, ?, ?)",
             (invoice_date, invoice_amt, company_id, invoice_client, 3, file_path)
         )
         conn.commit()
         
-        cursor.execute('select c.company_contact, c.company_name, i.invoice_no from company c join invoice i on i.invoice_client=?', (company_id,))
-        company_email , company_name, invoice_no = cursor.fetchone()[0]
+        # cursor.execute('select c.company_contact, c.company_name, i.invoice_no from company c join invoice i on i.invoice_client=?', (company_id,))
+        # company_email , company_name, invoice_no = cursor.fetchone()[0]
         
-        sendEmail(company_email, company_name, invoice_no, invoice_amt, invoice_date, "Pending Approval")
+        # sendEmail(company_email, company_name, invoice_no, invoice_amt, invoice_date, "Pending Approval")
 
         cursor.close()
         conn.close()
