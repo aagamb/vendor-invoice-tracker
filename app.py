@@ -193,10 +193,10 @@ def dashboard_admin():
     cursor = conn.cursor()
     
     # Add column names to the cursor
-    column_names = ["First Name", "Last Name", "Contact", "User Role"]
+    column_names = ["User Id", "First Name", "Last Name", "Contact", "User Role"]
 
     # Read the entire table
-    cursor.execute("""SELECT u.first_name, u.last_name, u.contact, r.role FROM users u JOIN role r ON u.user_role = r.role_id WHERE u.company_id=?""", (company_id,))
+    cursor.execute("""SELECT u.user_id, u.first_name, u.last_name, u.contact, r.role FROM users u JOIN role r ON u.user_role = r.role_id WHERE u.company_id=?""", (company_id,))
     data = cursor.fetchall()
     print(data)
     
@@ -242,21 +242,21 @@ def storeAdminAccountData():
 
     return redirect(url_for("dashboard_admin"))
 
-
 @app.route('/adminListVendors')
 def list_vendors():
     conn = sqlite3.connect('users.db')
     cursor = conn.cursor()
     
     # Add column names to the cursor
-    column_names = ["Company Name", "First Name", "Last Name", "Email", "Contact", "GST Number"]
+    column_names = ["Company ID", "Company Name", "Company Address", "GST No.", "Company Email"]
 
     # Read the entire table
-    cursor.execute("""SELECT u.first_name, u.last_name, u.contact, r.role FROM users u JOIN role r ON u.user_role = r.role_id WHERE u.company_id=?""", (company_id,))
+    cursor.execute('''select vr.vendor_id, c.company_name, c.company_addr, c.gstno, c.company_contact  from vendor_company_rel vr join company c on vr.vendor_id = c.company_id where vr.client_id = ?''', (company_id,))
     data = cursor.fetchall()
     print(data)
     
     # cursor.close()
+    cursor.close()
     conn.close()
     return render_template('adminListVendors.html', column_names=column_names, data=data)
 

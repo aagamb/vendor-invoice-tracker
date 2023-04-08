@@ -1,19 +1,44 @@
-<!DOCTYPE html>
-<html lang="en" >
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <title></title>
-        <meta name="description" content="">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="preconnect" href="https://fonts.googleapis.com"> 
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> 
-        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100&display=swap" rel="stylesheet">
-        <link rel="stylesheet" href="{{url_for('static', filename='css/adminModifyUser.css')}}">
-
-    </head>
-    
-    <body>
+{% extends 'base.html' %} {% block title %}Admin Page{% endblock %} {% block
+    head %}
+    <style>
+        .nav-container {
+            height: 100%;
+        }
+    </style>
+    <link rel="stylesheet" href="{{url_for('static', filename='css/adminModifyUser.css')}}">
+    {% endblock %} {% block body %}
+    <div
+                    class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse"
+                    id="sidebar">
+                    <div class="nav-container">
+                        
+                        <nav class="nav nav-pills flex-column">
+                            <!-- Add your navigation items here -->
+                            <div class="icon-container">
+                                <a href="/dashboard_admin">
+                                    <i class="fa-solid fa-house fa-2x" style="color: #1a63e0;"></i>
+                                </a>
+                            </div>
+                            
+                            <a class="nav-link" href="/adminAddUser">
+                                Add Company Members
+                            </a>
+                            <a class="nav-link" href="/dashboard_admin">
+                                Employees
+                            </a>
+                            <a class="nav-link" href="/adminListVendors">
+                                Vendors
+                            </a>
+                            <a class="nav-link" href="/adminRegisterVendor">
+                                Vendor Registeraion
+                            </a>
+                            <a class="nav-link" href="/adminModifyUser">
+                                Modify Users
+                            </a>
+                            
+                        </nav>
+                    </div>
+                </div>
         <div class="login-form">
             <form onsubmit="return validateForm()" action="/adminModifyUser" method = 'POST' id="accountCreateForm" >
                 <h1>Modify Employee Details</h1>
@@ -37,5 +62,5 @@
         <!-- partial -->
         <script  src="{{url_for('static', filename='js/createAccount.js')}}"></script>
 
-    </body>
-</html>
+    {% endblock %}
+

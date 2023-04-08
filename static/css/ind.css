@@ -65,3 +65,11 @@ table tbody tr:hover {
   line-height: 1.5;
   border-radius: 3px;
 }
+
+.icon-container {
+  display: flex;
+  justify-content: center; /* center horizontally */
+  align-items: center; /*center vertically*/
+  height: 100%;
+  margin-bottom: 1rem;
+}
