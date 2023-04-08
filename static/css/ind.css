@@ -72,4 +72,7 @@ table tbody tr:hover {
   align-items: center; /*center vertically*/
   height: 100%;
   margin-bottom: 1rem;
+  justify-content: space-between;
+  margin-right: 4rem;
+  margin-left: 4rem;
 }
