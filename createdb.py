@@ -49,7 +49,6 @@ conn.execute('''
                         REFERENCES role(role_id)
                 );
             ''')
-
 conn.execute('''
                 CREATE TABLE IF NOT EXISTS invoice_status (
                     invoice_status_id  INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -77,7 +76,7 @@ conn.execute('''
                         REFERENCES company(company_id),
                     FOREIGN KEY(invoice_client) 
                         REFERENCES company(company_id),
-                    FOREIGN KEY(invoice_status) 
+                    FOREIGN KEY(invoice_status_id) 
                         REFERENCES invoice_status(invoice_status_id)
                 );
             ''')
@@ -89,8 +88,8 @@ conn.execute('''
                     invoice_status_id   INTEGER,
                     FOREIGN KEY(invoice_id) 
                         REFERENCES invoice(invoice_id),
-                    FOREIGN KEY(invoice_status) 
-                        REFERENCES invoice_status(invoice_status_id)
+                    FOREIGN KEY(invoice_status_id) 
+                        REFERENCES invoice(invoice_status_id)
                 );
             ''')
 
