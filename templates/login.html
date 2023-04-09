@@ -1,62 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8" />
-        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-        <title></title>
-        <meta name="description" content="" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link
-            href="https://fonts.googleapis.com/css2?family=Roboto:wght@100&display=swap"
-            rel="stylesheet" />
-        <link
-            rel="stylesheet"
-            href="{{url_for('static', filename='css/login.css')}}" />
-    </head>
-    <body>
-        <!-- partial:index.partial.html -->
-        <div class="login-form">
-            <form action="/loginDashboard" method="POST">
-                <h1>Login</h1>
-                <div class="content">
-                    <p style="color: red;">{{errmsg}}</p>
-                    <div class="input-field">
-                        <input
-                            type="text"
-                            placeholder="Username"
-                            name="uname"
-                            autocomplete="nope"
-                            value="{{usrname}}" />
-                    </div>
-                    
-                    <div class="input-field">
-                        <input
-                            type="password"
-                            placeholder="Password"
-                            name="pwd"
-                            autocomplete="new-password" />
-                    </div>
-                    <a href="{{url_for('forgotPassword')}}" class="link"><p style="color: #2055e6; float: right;">Forgot Your Password?</p></a>
-                    <a href="{{url_for('createAccount')}}" class="link"><p style="color: #2055e6; float: right;">Create New Account</p></a>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title></title>
+    <meta name="description" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <link rel="stylesheet" href="{{url_for('static', filename='css/login.css')}}" />
+</head>
+<body>
+    <section class="login">
+        <div class="login_box">
+            <div class="left">
+                
+                <div class="contact">
+                    <form action="/loginDashboard" method="POST">
+                        <h3>Login</h3>
+                        <p style="color: red;">{{errmsg}}</p>
+                        <input type="text" name="uname" autocomplete="nope" value="{{usrname}}" placeholder="Username">
+                        <input type="password" name="pwd" autocomplete="new-password" placeholder="Password">
+                        <a href="{{url_for('createAccount')}}" class="link"><p style="color: #583672; float: right;">Create New Account</p></a>
+                        <button class="submit">Submit</button>
+                    </form>
                 </div>
-                <div class="action">
-                    <input type="submit" value="Submit" class="button" />
-                    <input
-                        type="button"
-                        onclick="reset()"
-                        class="button"
-                        value="Reset" />
+            </div>
+            <div class="right">
+                <div class="right-text">
+                    <h2>Invoice Manager</h2>
+                    <h5>Invoice Tracking Simplified</h5>
                 </div>
-            </form>
+            </div>
         </div>
-        <!-- partial -->
-        <script src="{{url_for('static', filename='js/login.js')}}"></script>
-        <script>
-            function reset() {
-                document.getElementById("myForm").reset();
-            }
-        </script>
-    </body>
+    </section>
+    <script src="{{url_for('static', filename='js/login.js')}}"></script>
+</body>
 </html>

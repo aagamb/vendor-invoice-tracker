@@ -1,86 +1,87 @@
 <!DOCTYPE html>
-<html lang="en" >
+<html lang="en">
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <title></title>
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="preconnect" href="https://fonts.googleapis.com"> 
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> 
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="{{url_for('static', filename='css/createAccount.css')}}">
-
     </head>
     
     <body>
-        <div class="jumbotron">
-          <div class="login-form">
-            <form onsubmit="return validateForm()" action="/createAccount" method="POST" id="accountCreateForm">
-              <h1>Sign up</h1>
-              <div class="form-container">
-                <div class="left-column">
-                  <div class="input-field">
-                    <label for="fname">First Name</label>
-                    <input type="text" placeholder="First Name" name="fname" autocomplete="nope">
-                  </div>
-                        <div class="input-field">
-                            <label for="lname">Last Name</label>
-                            <input type="text" placeholder="Last Name" name="lname" autocomplete="nope">
+        <div class="create-account-container">
+            <div class="form-container">
+                <form onsubmit="return validateForm()" action="/createAccount" method="POST" id="accountCreateForm">
+                    <h1>Sign up</h1>
+                    <div class="columns">
+                        
+                        <div class="left-column">
+                            <!-- Personal Details -->
+                            <h3>Personal Details</h3>
+                            <div class="input-field">
+                                <label for="fname">First Name</label>
+                                <input type="text" placeholder="First Name" name="fname" autocomplete="nope">
+                            </div>
+                            <div class="input-field">
+                                <label for="lname">Last Name</label>
+                                <input type="text" placeholder="Last Name" name="lname" autocomplete="nope">
+                            </div>
+                            <div class="input-field">
+                                <label for="email">User Email</label>
+                                <input type="text" placeholder="User Email" name="email" autocomplete="nope">
+                            </div>
+                            <div class="input-field">
+                                <label for="contact">Contact no</label>
+                                <input type="text" placeholder="Contact no" name="contact" autocomplete="nope">
+                            </div>
+                            <div class="input-field">
+                                <label for="pwd1">Password</label>
+                                <input type="password" placeholder="Password" name="pwd1" id="pwd1" autocomplete="nope">
+                            </div>
+                            <div class="input-field">
+                                <label for="pwd2">Confirm Password</label>
+                                <input type="password" placeholder="Confirm Password" name="pwd2" id="pwd2" autocomplete="nope">
+                            </div>
                         </div>
-                        <div class="input-field">
-                            <label for="cname">Company Name</label>
-                            <input type="text" placeholder="Company Name" name="cname" autocomplete="nope">
-                        </div>
-                        <div class="input-field">
-                            <label for="contact">Contact no</label>
-                            <input type="text" placeholder="Contact no" name="contact" autocomplete="nope">
-                        </div>
-                        <div class="input-field">
-                            <label for="email">User Email</label>
-                            <input type="text" placeholder="User Email" name="email" autocomplete="nope">
-                        </div>
-                        <div class="input-field">
-                            <label for="pwd1">Password</label>
-                            <input type="password" placeholder="Password" name="pwd1" id="pwd1" autocomplete="nope">
-                        </div>
-                        <div class="input-field">
-                            <label for="pwd2">Confirm Password</label>
-                            <input type="password" placeholder="Confirm Password" name="pwd2" id="pwd2" autocomplete="nope">
-                        </div>
-                    </div>
-                    <div class="right-column">
-                        <h3>Company Details</h3>
-                        <div class="input-field">
-                            <label for="company_name">Company Name</label>
-                            <input type="text" placeholder="Company Name" name="company_name" id="company_name" autocomplete="nope">
-                        </div>
-                        <div class="input-field">
-                            <label for="company_addr">Company Address</label>
-                            <input type="text" placeholder="Company Address" name="company_addr" id="company_addr" autocomplete="nope">
-                        </div>
-                        <div class="input-field">
-                            <label for="company_contact">Company Contact</label>
-                            <input type="text" placeholder="Company Contact" name="company_contact" id="company_contact" autocomplete="nope">
-                        </div>
-                        <div class="input-field">
-                            <label for="gstno">GST No.</label>
-                            <input type="text" placeholder="GST No." name="gstno" id="gstno" autocomplete="nope">
-                        </div>
-                    </div>
-                </div>
-                <span id="message2" style="color:red"> </span> <br>
-                <div class="action-container">
-                  <a href="/" class="link">Home</a>
-                  <div class="action">
-                    <input type="submit" id="submitBtn" value="Submit" class="button" />
-                    <input type="button" onclick="reset()" class="button" value="Reset">
-                  </div>
-                </div>
-              </form>
-            </div>
+                        <div class="right-column">
+                            <!-- Company Details -->
+                            <h3>Company Details</h3>
+                            <div class="input-field">
+                                <label for="company_name">Company Name</label>
+                                <input type="text" placeholder="Company Name" name="company_name" id="company_name" autocomplete="nope">
+                            </div>
+                            <div class="input-field">
+                                <label for="company_addr">Company Address</label>
+                                <input type="text" placeholder="Company Address" name="company_addr" id="company_addr" autocomplete="nope">
+                            </div>
+                            <div class="input-field">
+                                <label for="company_contact">Company Contact</label>
+                                <input type="text" placeholder="Company Contact" name="company_contact" id="company_contact" autocomplete="nope">
+                            </div>
+                            <div class="input-field">
+                                <label for="gstno">GST No.</label>
+                                <input type="text" placeholder="GST No." name="gstno" id="gstno" autocomplete="nope">
+                              </div>
+                          </div>
+                      </div>
+                      <span id="message2" style="color:red"> </span> <br>
+                      <div class="action-container">
+                          <div class="top_link">
+                              <a href="/" class = "link"><img src="https://drive.google.com/u/0/uc?id=16U__U5dJdaTfNGobB_OpwAJ73vM50rPV&export=download" alt=""> Return home</a>
+                          </div>
+                          <div class="action">
+                              <input type="submit" id="submitBtn" value="Submit" class="button submit" />
+                              <input type="button" onclick="reset()" class="button submit" value="Reset">
+                          </div>
+                      </div>
+                  </form>
+              </div>
           </div>
           <script src="{{url_for('static', filename='js/createAccount.js')}}"></script>
-        </body>
-    </html>
-    
+      </body>
+  </html>
+  
