@@ -236,24 +236,27 @@ def storeAdminAccountData():
     role = request.form.get("options")
     
     print("ROLE: ", role, sys.stderr)
-    
-    conn = getdbConnection()
-    cur = conn.cursor()
+    try:
+        conn = getdbConnection()
+        cur = conn.cursor()
 
-    ret = cur.execute("INSERT INTO authorization(user_email, pwd) VALUES (?, ?)", (email, pwd))
-    print(ret)
-    conn.commit()
-    auth_id = cur.lastrowid
-    print("auth_id: ", auth_id)
-    cur.execute("select * from company where company_name = ?;", (session["cname"], ))
-    # company_id = cur.lastrowid
-    print("company_id: ", company_id, sys.stderr)
+        ret = cur.execute("INSERT INTO authorization(user_email, pwd) VALUES (?, ?)", (email, pwd))
+        print(ret)
+        conn.commit()
+        auth_id = cur.lastrowid
+        print("auth_id: ", auth_id)
+        cur.execute("select * from company where company_name = ?;", (session["cname"], ))
+        # company_id = cur.lastrowid
+        print("company_id: ", company_id, sys.stderr)
 
-    cur.execute('''INSERT INTO users(user_id, first_name, last_name, contact, company_id, user_role)
-                    VALUES (?, ?, ?, ?, ?, ?);''', (auth_id, fname, lname, contact, company_id, d[role]))
-    
-    conn.commit()
-    conn.close()
+        cur.execute('''INSERT INTO users(user_id, first_name, last_name, contact, company_id, user_role)
+                        VALUES (?, ?, ?, ?, ?, ?);''', (auth_id, fname, lname, contact, company_id, d[role]))
+        
+        conn.commit()
+        conn.close()
+    except sqlite3.IntegrityError:
+        print("User email exists")
+        return render_template("adminAddUser.html", errmsg="User email exists")
 
     return redirect(url_for("dashboard_admin"))
 
@@ -263,8 +266,8 @@ def list_vendors():
     cursor = conn.cursor()
     
     # Add column names to the cursor
-    column_names = ["Company ID", "Company Name", "Company Address", "GST No.", "Company Email"]
-
+    column_names = ["Vendor Company Name", "First Name", "Last Name", "Email", "Contact", "GST Number"]
+    client_id = session["company_id"]
     # Read the entire table
     cursor.execute('''select vr.vendor_id, c.company_name, c.company_addr, c.gstno, c.company_contact  from vendor_company_rel vr join company c on vr.vendor_id = c.company_id where vr.client_id = ?''', (company_id,))
     data = cursor.fetchall()
@@ -318,7 +321,7 @@ def storeVendorAccountData():
 
     cur.execute("select company_id from company where company_name = ?", (company_name,))
     auth_id = cur.fetchone()[0]
-    cur.execute("""INSERT INTO vendor_company_rel(vendor_id, client_id) VALUES(?, ?)""", (auth_id, session["company_id"]))
+    cur.execute("""INSERT INTO vendor_company_rel(vendor_id, client_id) VALUES(?, ?)""", (company_id, session["company_id"]))
     conn.commit()
 
     conn.close()
@@ -515,7 +518,7 @@ def dashboard_vendor():
     column_names = ["Invoice Date", "Invoice Amount", "Company Invoiced ID", "Invoice Status"]
 
     cursor.execute("select company_name from company where company_id = ?", (company_id,))
-    cname = cursor.fetchall()[0]
+    # cname = cursor.fetchall()[0]
     # Read the entire table
     cursor.execute("select invoice_date, invoice_amt, invoice_client, invoice_status_id from invoice join (select * from company where company_id=?)", (company_id,))
     data = cursor.fetchall()
@@ -528,7 +531,17 @@ def dashboard_vendor():
 
 @app.route('/vendorAddInvoice')
 def vendorAddInvoice():
-    return render_template("vendorAddInvoice.html")
+    conn = sqlite3.connect('users.db')
+    cursor = conn.cursor()
+
+    vid = session["company_id"]
+
+    cursor.execute("SELECT c.company_id, c.company_name FROM company c JOIN vendor_company_rel v ON v.client_id = c.company_id WHERE v.vendor_id = ?", (vid, ))
+
+    clients = cursor.fetchall()
+    print(clients)
+    cursor.execute("")
+    return render_template("vendorAddInvoice.html", clients=clients)
 
 @app.route('/vendorAddInvoice', methods=['POST'])
 def vendorAddInvoiceAction():

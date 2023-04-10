@@ -23,8 +23,6 @@
                                 </a>
                               </div>
                             <a class="nav-link" href="/vendorAddInvoice">Create Invoice</a>
-                            <a class="nav-link" href="#">Item 2</a>
-                            <a class="nav-link" href="#">Item 3</a>
                         </nav>
                     </div>
                 </div>
@@ -32,35 +30,40 @@
             <form onsubmit="return validateForm()" action="/vendorAddInvoice" method="POST" id="invoiceCreateForm" enctype="multipart/form-data">
                 <h1>Add Invoice</h1>
                 <div class="content">
-                  <!-- <div class="input-field">
-                    <label for="invoice_no">Invoice Number</label>
-                    <input type="text" placeholder="Invoice Number" name="invoice_no" autocomplete="nope">
-                  </div> -->
-                  <div class="input-field">
-                    <label for="invoice_date">Invoice Date</label>
-                    <input type="date" name="invoice_date" autocomplete="nope">
-                  </div>
-                  <div class="input-field">
-                    <label for="invoice_amt">Invoice Amount</label>
-                    <input type="text" placeholder="Invoice Amount" name="invoice_amt" autocomplete="nope">
-                  </div>
-                  <div class="input-field">
-                    <label for="invoice_client">Client ID</label>
-                    <input type="text" placeholder="Client ID" name="invoice_client" autocomplete="nope">
-                  </div>
-                  <div class="input-field">
-                    <label for="file">Invoice File</label>
-                    <input type="file" name="file" accept=".pdf">
-                  </div>
-                  <span id="message2" style="color:red"></span> <br><br>  
-                  <!--<p id="errorMessage">The username or company name is already taken</p>-->
-                  <div>
-                    <a href="/dashboard_admin" class="link">Back</a>
-                  </div>
-                  <div class="action">
-                    <input type="submit" id="submitBtn" value="Submit" class="button" />
-                    <input type="button" onclick="reset()" class="button" value="Reset">
-                  </div>
+                    <!-- <div class="input-field">
+                        <label for="invoice_no">Invoice Number</label>
+                        <input type="text" placeholder="Invoice Number" name="invoice_no" autocomplete="nope">
+                    </div> -->
+                    <div class="input-field">
+                        <label for="invoice_date">Invoice Date</label>
+                        <input type="date" name="invoice_date" autocomplete="nope">
+                    </div>
+                    <div class="input-field">
+                        <label for="invoice_amt">Invoice Amount</label>
+                        <input type="text" placeholder="Invoice Amount" name="invoice_amt" autocomplete="nope">
+                    </div>
+                    <div class="input-field">
+                        <label for="invoice_client">Client</label>
+                        <select name="invoice_client" id="invoice_client" required>
+                            <option value="">Select Client</option>
+                            {% for client in clients %}
+                                <option value="{{client[0]}}">{{client[1]}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="input-field">
+                        <label for="file">Invoice File</label>
+                        <input type="file" name="file" accept=".pdf">
+                    </div>
+                    <span id="message2" style="color:red"></span> <br><br>  
+                    <!--<p id="errorMessage">The username or company name is already taken</p>-->
+                    <div>
+                        <a href="/dashboard_admin" class="link">Back</a>
+                    </div>
+                    <div class="action">
+                        <input type="submit" id="submitBtn" value="Submit" class="button" />
+                        <input type="button" onclick="reset()" class="button" value="Reset">
+                    </div>
                 </div>
               </form>
               

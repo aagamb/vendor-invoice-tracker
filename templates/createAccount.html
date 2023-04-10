@@ -11,11 +11,22 @@
         <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="{{url_for('static', filename='css/createAccount.css')}}">
     </head>
-    
+    <script>  
+        function verifyPassword() {  
+            var pw1 = document.getElementById("pwd1").value;
+            var pw2 = document.getElementById("pwd2").value;
+
+            if (pw1 != pw2) {
+                document.getElementById("message").innerHTML = "Passwords do not match!";  
+                return false;  
+            }
+            return true;
+        }
+    </script> 
     <body>
         <div class="create-account-container">
             <div class="form-container">
-                <form onsubmit="return validateForm()" action="/createAccount" method="POST" id="accountCreateForm">
+                <form onsubmit="return verifyPassword()" action="/createAccount" method="POST" id="accountCreateForm">
                     <h1>Sign up</h1>
                     <div class="columns">
                         
@@ -37,6 +48,9 @@
                             <div class="input-field">
                                 <label for="contact">Contact no</label>
                                 <input type="text" placeholder="Contact no" name="contact" autocomplete="nope">
+                            </div>
+                            <div>
+                                <p style="color: red;" id="message"></p>
                             </div>
                             <div class="input-field">
                                 <label for="pwd1">Password</label>
@@ -68,7 +82,6 @@
                               </div>
                           </div>
                       </div>
-                      <span id="message2" style="color:red"> </span> <br>
                       <div class="action-container">
                           <div class="top_link">
                               <a href="/" class = "link"><img src="https://drive.google.com/u/0/uc?id=16U__U5dJdaTfNGobB_OpwAJ73vM50rPV&export=download" alt=""> Return home</a>
@@ -81,7 +94,6 @@
                   </form>
               </div>
           </div>
-          <script src="{{url_for('static', filename='js/createAccount.js')}}"></script>
       </body>
   </html>
   

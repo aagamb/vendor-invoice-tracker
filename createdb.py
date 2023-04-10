@@ -88,7 +88,7 @@ conn.execute('''
                     invoice_status_id   INTEGER,
                     FOREIGN KEY(invoice_id) 
                         REFERENCES invoice(invoice_id),
-                    FOREIGN KEY(invoice_status_id) 
+                    FOREIGN KEY(invoice_status_id_id) 
                         REFERENCES invoice(invoice_status_id)
                 );
             ''')

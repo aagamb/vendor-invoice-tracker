@@ -64,12 +64,15 @@ head %}
                             <td>{{ cell }}</td>
                             {% endfor %}
                             <td>
-                                {% if row[4] != "Admin"%}
-                                <button
-                                    class="btn btn-danger row-action-btn"
-                                    data-row-id="{{ row[0] }}">
-                                    Delete
-                                </button>
+                                {% if row[0] != 1%}
+                                <form action="/adminDeleteUser" method="post">
+                                    <button
+                                        type="submit"
+                                        class="btn btn-danger row-action-btn"
+                                        data-row-id="{{ row[0] }}">
+                                        Delete
+                                    </button>
+                                </form>
                                 {% endif %}
                             </td>
                         </tr>
