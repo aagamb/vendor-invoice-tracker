@@ -25,9 +25,9 @@
                                   <i class="fa-solid fa-arrow-right-from-bracket fa-rotate-180 fa-2x" style="color: #1a63e0;"></i>
                                 </a>
                               </div>
-                            <a class="nav-link" href="#">Item 1</a>
-                            <a class="nav-link" href="#">Item 2</a>
-                            <a class="nav-link" href="#">Item 3</a>
+                            <a class="nav-link" href="#">History</a>
+                            <a class="nav-link" href="#">Approved</a>
+                            <a class="nav-link" href="#">Rejected</a>
                         </nav>
                     </div>
                 </div>
@@ -51,11 +51,14 @@
                             <td>{{ cell }}</td>
                             {% endfor %}
                             <td>
-                                <button
-                                    class="btn btn-info row-action-btn download-invoice"
-                                    data-row-id="{{ row[0] }}">
-                                    Download Invoice
-                                </button>
+                                <!-- <form method="POST" action="/downloadFile/{{ row[0] }}" enctype="multipart/form-data"> -->
+                                    <button
+                                        type="submit"
+                                        class="btn btn-info row-action-btn download-invoice"
+                                        data-row-id="{{ row[0] }}">
+                                        <a href="/downloadFile/{{ row[0] }}">Download Invoice</a>
+                                    </button>
+                                <!-- </form> -->
                             </td>
                             <td>
                                 <button
@@ -97,8 +100,8 @@
                 alert("Button clicked for row with ID: " + rowId);
 
                 $.ajax({
-                    url: "/downloadFile",
-                    type: "POST",
+                    url: "/downloadFile/"+row_id,
+                    type: "GET",
                     data: { "data-row-id": rowId },
 
                     success: function (response) {
