@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, url_for, redirect, session, send_file, flash
+from flask import Flask, render_template, request, url_for, redirect, session, send_file, send_from_directory, flash
 from flask_mail import Mail, Message
 import sqlite3
 import sys
@@ -266,10 +266,10 @@ def list_vendors():
     cursor = conn.cursor()
     
     # Add column names to the cursor
-    column_names = ["Vendor Company Name", "First Name", "Last Name", "Email", "Contact", "GST Number"]
+    column_names = ["Company ID", "Company Name", "Company Address", "GST No.", "Company Email"] 
     client_id = session["company_id"]
     # Read the entire table
-    cursor.execute('''select vr.vendor_id, c.company_name, c.company_addr, c.gstno, c.company_contact  from vendor_company_rel vr join company c on vr.vendor_id = c.company_id where vr.client_id = ?''', (company_id,))
+    cursor.execute('''select vr.vendor_id, c.company_name, c.company_addr, c.gstno, c.company_contact  from vendor_company_rel vr join company c on vr.vendor_id = c.company_id where vr.client_id = ?''', (client_id,))
     data = cursor.fetchall()
     print(data)
     
@@ -430,18 +430,23 @@ def dashboard_approver():
     conn.close()
     return render_template('dashboard_approver.html', column_names= column_names, data = data)
 
-@app.route('/downloadFile', methods = ['POST'])
-def download_file():
-    row_id = request.form['data-row-id']
+@app.route('/downloadFile/<invoice_id>', methods = ['POST'])
+def download_file(invoice_id):
+    # row_id = request.form['data-row-id']
+    print("Requested invoice", invoice_id)
     conn = sqlite3.connect('users.db')
     cur = conn.cursor()
 
-    cur.execute("SELECT invoice_file FROM invoice WHERE invoice_id = ?", (row_id,))
+    cur.execute("SELECT invoice_file FROM invoice WHERE invoice_id = ?", (invoice_id,))
     data = cur.fetchone()[0]
 
     cur.close()
     conn.close()
-    return send_file(data, as_attachment=True)
+    uploads = "/invoice"
+    path = "/invoice/"+data
+    # return send_from_directory(directory=uploads, filename=data)
+    return send_file(path, as_attachment=True)
+
 
 @app.route("/approverApproved", methods=['POST'])
 def approverApprovedAction():
@@ -541,6 +546,7 @@ def vendorAddInvoice():
     clients = cursor.fetchall()
     print(clients)
     cursor.execute("")
+    conn.close()
     return render_template("vendorAddInvoice.html", clients=clients)
 
 @app.route('/vendorAddInvoice', methods=['POST'])
