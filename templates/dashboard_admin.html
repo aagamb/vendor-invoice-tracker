@@ -64,7 +64,7 @@ head %}
                             <td>{{ cell }}</td>
                             {% endfor %}
                             <td>
-                                {% if row[0] != 1%}
+                                {% if row[4] != "Admin" %}
                                 <form action="/adminDeleteUser" method="post">
                                     <button
                                         type="submit"

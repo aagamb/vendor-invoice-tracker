@@ -86,7 +86,7 @@ def createAccount():
 def storeAccountData():
     fname = request.form.get("fname")
     lname = request.form.get("lname")
-    cname = request.form.get("cname")
+    cname = request.form.get("company_name")
     email = request.form.get("email")
     contact = request.form.get("contact")
     pwd = request.form.get("pwd1")
@@ -397,17 +397,14 @@ def adminModifyUserAction():
     
     cur.execute('''
         UPDATE authorization
-        SET user_email = ?,
-        pwd = ?
+        SET pwd = ?
         WHERE auth_id = ?;
-        ''', (contact, pwd, user_id))
+        ''', (pwd, user_id))
     conn.commit()
 
     cur.close()
     conn.close()
 
-    
-    
     return redirect(url_for("dashboard_admin"))
     
 #ADMIN DASHBOARD NESTED PAGES ENDS--------------------------------
@@ -630,7 +627,7 @@ def dashboard_accounts():
     cursor.execute("select company_name from company where company_id = ?", (company_id,))
     cname = cursor.fetchall()[0]
     # Read the entire table
-    cursor.execute("select invoice_id, invoice_date, invoice_amt, invoice_client, invoice_status_id from invoice join (select * from company where company_id=?) where invoice_status_id=2", (company_id,))
+    cursor.execute("select invoice_id, invoice_date, invoice_amt, invoice_client, invoice_status_id from invoice join (select * from company where company_id=?);", (company_id,))
     data = cursor.fetchall()
     
     print(data, file = sys.stderr)
