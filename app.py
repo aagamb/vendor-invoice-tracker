@@ -328,6 +328,43 @@ def storeVendorAccountData():
 
     return redirect(url_for("dashboard_admin"))
 
+@app.route('/adminRegisterExistingVendor')
+def existing_vendor():
+    conn = getdbConnection()
+    cur = conn.cursor()
+    print(session["company_id"])
+    column_names = ["Company ID", "Company Name"]
+
+    cur.execute("""SELECT c.company_id, c.company_name 
+                   FROM company c
+                   JOIN users u ON u.company_id = c.company_id
+                   JOIN vendor_company_rel v ON v.vendor_id = c.company_id
+                   WHERE u.user_role = 4 
+                   AND v.client_id != ?;""", (session["company_id"], ))
+    data = cur.fetchall()
+
+    conn.close()
+    return render_template("adminRegisterExistingVendor.html", column_names = column_names, data = data)
+
+@app.route('/adminRegisterExistingVendor',  methods=['POST'])
+def storeExistingVendorAccountData():
+    print("COMPANY NAME IS (Inside vendor): ", session.get("cname"), "\n", file = sys.stderr)
+    
+    company_id = session["company_id"]
+    vendor_id = request.form["vid"]
+    conn = getdbConnection()
+    cur = conn.cursor()
+
+
+    cur.execute("""INSERT INTO vendor_company_rel(vendor_id, client_id)
+                   VALUES (?, ?);""", (vendor_id, company_id))
+
+    conn.commit()
+    conn.close()
+    
+    return redirect(url_for("dashboard_admin"))
+
+
 @app.route('/adminDeleteUser', methods=['POST'])
 def adminDeleteUser():
     row_id = request.form['data-row-id']
@@ -561,7 +598,7 @@ def vendorAddInvoiceAction():
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(file_path)
 
-        # invoice_no = request.form['invoice_no']
+        invoice_no = request.form['invoice_no']
         invoice_date = request.form['invoice_date']
         invoice_amt = request.form['invoice_amt']
         invoice_client = request.form['invoice_client']
@@ -571,8 +608,8 @@ def vendorAddInvoiceAction():
         cursor = conn.cursor()
 
         cursor.execute(
-            "INSERT INTO invoice (invoice_date, invoice_amt, invoice_vendor ,invoice_client, invoice_status_id, invoice_file) VALUES (?, ?, ?, ?, ?, ?)",
-            (invoice_date, invoice_amt, company_id, invoice_client, 3, file_path)
+            "INSERT INTO invoice (invoice_no, invoice_date, invoice_amt, invoice_vendor ,invoice_client, invoice_status_id, invoice_file) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (invoice_no, invoice_date, invoice_amt, company_id, invoice_client, 3, file_path)
         )
         conn.commit()
 
@@ -624,10 +661,14 @@ def dashboard_accounts():
     column_names = [col[1] for col in cursor.fetchall()]
     column_names = ["Invoice Id", "Invoice Date", "Invoice Amount", "Company Invoiced ID", "Invoice Status"]
 
-    cursor.execute("select company_name from company where company_id = ?", (company_id,))
-    cname = cursor.fetchall()[0]
+    # cursor.execute("select company_name from company where company_id = ?", (company_id,))
+    # cname = cursor.fetchall()[0]
     # Read the entire table
-    cursor.execute("select invoice_id, invoice_date, invoice_amt, invoice_client, invoice_status_id from invoice join (select * from company where company_id=?);", (company_id,))
+    cursor.execute("""SELECT i.invoice_id, i.invoice_date, i.invoice_amt, c.company_name, ist.invoice_status 
+                      FROM invoice i
+                      JOIN company c ON i.invoice_client=c.company_id
+                      JOIN invoice_status ist ON i.invoice_status_id=ist.invoice_status_id
+                      WHERE i.invoice_client=?""", (company_id,))
     data = cursor.fetchall()
     
     print(data, file = sys.stderr)
@@ -693,7 +734,60 @@ def accountsRejectedAction():
     conn.close()
     
     return redirect(url_for("dashboard_accounts"))
-    
+
+
+@app.route("/accountsApprovedInvoices")
+def accountsApprovedInvoices():
+    conn = sqlite3.connect('users.db')
+    cursor = conn.cursor()
+
+    column_names = ["Invoice Id", "Invoice Date", "Invoice Amount", "Company Invoiced ID", "Invoice Status"]
+
+    cursor.execute("""SELECT i.invoice_id, i.invoice_date, i.invoice_amt, c.company_name, ist.invoice_status 
+                        FROM invoice i 
+                        JOIN company c ON i.invoice_client = c.company_id 
+                        JOIN invoice_status ist ON i.invoice_status_id = ist.invoice_status_id 
+                        WHERE c.company_id=? AND i.invoice_status_id=1;""", (company_id,))
+    data = cursor.fetchall()
+    conn.close()
+
+    return render_template("accountsFilteredInvoices.html", column_names = column_names, data = data )
+
+@app.route("/accountsPayedInvoices")
+def accountsPayedInvoices():
+    conn = sqlite3.connect('users.db')
+    cursor = conn.cursor()
+
+    column_names = ["Invoice Id", "Invoice Date", "Invoice Amount", "Company Invoiced ID", "Invoice Status"]
+
+    cursor.execute("""SELECT i.invoice_id, i.invoice_date, i.invoice_amt, c.company_name, ist.invoice_status 
+                        FROM invoice i 
+                        JOIN company c ON i.invoice_client = c.company_id 
+                        JOIN invoice_status ist ON i.invoice_status_id = ist.invoice_status_id 
+                        WHERE c.company_id=? AND i.invoice_status_id=4;""", (company_id,))
+    data = cursor.fetchall()
+    conn.close()
+
+    return render_template("accountsFilteredInvoices.html", column_names = column_names, data = data )
+
+@app.route("/accountsPayRejectInvoices")
+def accountsPayRejectInvoices():
+    conn = sqlite3.connect('users.db')
+    cursor = conn.cursor()
+
+    column_names = ["Invoice Id", "Invoice Date", "Invoice Amount", "Company Invoiced ID", "Invoice Status"]
+
+    cursor.execute("""SELECT i.invoice_id, i.invoice_date, i.invoice_amt, c.company_name, ist.invoice_status 
+                        FROM invoice i 
+                        JOIN company c ON i.invoice_client = c.company_id 
+                        JOIN invoice_status ist ON i.invoice_status_id = ist.invoice_status_id 
+                        WHERE c.company_id=? AND i.invoice_status_id=5;""", (company_id,))
+    data = cursor.fetchall()
+    conn.close()
+
+    return render_template("accountsFilteredInvoices.html", column_names = column_names, data = data )
+
+
 #ACCOUNTS DASHBOARD NESTED PAGES ENDS--------------------------------
 
 

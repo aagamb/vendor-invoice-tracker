@@ -39,8 +39,6 @@
                             {% for column_name in column_names %}
                             <th>{{ column_name }}</th>
                             {% endfor %}
-                            <th>Proceed Payment</th>
-                            <th>Reject Payment</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -49,22 +47,6 @@
                             {% for cell in row %}
                             <td>{{ cell }}</td>
                             {% endfor %}
-                            
-                            <td>
-                                <button
-                                    class="btn btn-danger row-action-btn approve"
-                                    data-row-id="{{ row[0] }}">
-                                    Pay
-                                </button>
-                            </td>
-                            <td>
-                                <button
-                                    class="btn btn-danger row-action-btn reject"
-                                    data-row-id="{{ row[0] }}">
-                                    Reject
-                                </button>
-                            </td>
-                           
                         </tr>
                         {% endfor %}
                     </tbody>
