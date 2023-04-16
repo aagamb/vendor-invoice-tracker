@@ -1,0 +1,432 @@
+diff --git a/app.py b/app.py
+index a2d0a65..1279094 100644
+--- a/app.py
++++ b/app.py
+@@ -236,24 +236,27 @@ def storeAdminAccountData():
+     role = request.form.get("options")
+     
+     print("ROLE: ", role, sys.stderr)
+-    
+-    conn = getdbConnection()
+-    cur = conn.cursor()
+-
+-    ret = cur.execute("INSERT INTO authorization(user_email, pwd) VALUES (?, ?)", (email, pwd))
+-    print(ret)
+-    conn.commit()
+-    auth_id = cur.lastrowid
+-    print("auth_id: ", auth_id)
+-    cur.execute("select * from company where company_name = ?;", (session["cname"], ))
+-    # company_id = cur.lastrowid
+-    print("company_id: ", company_id, sys.stderr)
++    try:
++        conn = getdbConnection()
++        cur = conn.cursor()
+ 
+-    cur.execute('''INSERT INTO users(user_id, first_name, last_name, contact, company_id, user_role)
+-                    VALUES (?, ?, ?, ?, ?, ?);''', (auth_id, fname, lname, contact, company_id, d[role]))
+-    
+-    conn.commit()
+-    conn.close()
++        ret = cur.execute("INSERT INTO authorization(user_email, pwd) VALUES (?, ?)", (email, pwd))
++        print(ret)
++        conn.commit()
++        auth_id = cur.lastrowid
++        print("auth_id: ", auth_id)
++        cur.execute("select * from company where company_name = ?;", (session["cname"], ))
++        # company_id = cur.lastrowid
++        print("company_id: ", company_id, sys.stderr)
++
++        cur.execute('''INSERT INTO users(user_id, first_name, last_name, contact, company_id, user_role)
++                        VALUES (?, ?, ?, ?, ?, ?);''', (auth_id, fname, lname, contact, company_id, d[role]))
++        
++        conn.commit()
++        conn.close()
++    except sqlite3.IntegrityError:
++        print("User email exists")
++        return render_template("adminAddUser.html", errmsg="User email exists")
+ 
+     return redirect(url_for("dashboard_admin"))
+ 
+@@ -263,8 +266,8 @@ def list_vendors():
+     cursor = conn.cursor()
+     
+     # Add column names to the cursor
+-    column_names = ["Company ID", "Company Name", "Company Address", "GST No.", "Company Email"]
+-
++    column_names = ["Vendor Company Name", "First Name", "Last Name", "Email", "Contact", "GST Number"]
++    client_id = session["company_id"]
+     # Read the entire table
+     cursor.execute('''select vr.vendor_id, c.company_name, c.company_addr, c.gstno, c.company_contact  from vendor_company_rel vr join company c on vr.vendor_id = c.company_id where vr.client_id = ?''', (company_id,))
+     data = cursor.fetchall()
+@@ -318,7 +321,7 @@ def storeVendorAccountData():
+ 
+     cur.execute("select company_id from company where company_name = ?", (company_name,))
+     auth_id = cur.fetchone()[0]
+-    cur.execute("""INSERT INTO vendor_company_rel(vendor_id, client_id) VALUES(?, ?)""", (auth_id, session["company_id"]))
++    cur.execute("""INSERT INTO vendor_company_rel(vendor_id, client_id) VALUES(?, ?)""", (company_id, session["company_id"]))
+     conn.commit()
+ 
+     conn.close()
+@@ -515,7 +518,7 @@ def dashboard_vendor():
+     column_names = ["Invoice Date", "Invoice Amount", "Company Invoiced ID", "Invoice Status"]
+ 
+     cursor.execute("select company_name from company where company_id = ?", (company_id,))
+-    cname = cursor.fetchall()[0]
++    # cname = cursor.fetchall()[0]
+     # Read the entire table
+     cursor.execute("select invoice_date, invoice_amt, invoice_client, invoice_status_id from invoice join (select * from company where company_id=?)", (company_id,))
+     data = cursor.fetchall()
+@@ -528,7 +531,17 @@ def dashboard_vendor():
+ 
+ @app.route('/vendorAddInvoice')
+ def vendorAddInvoice():
+-    return render_template("vendorAddInvoice.html")
++    conn = sqlite3.connect('users.db')
++    cursor = conn.cursor()
++
++    vid = session["company_id"]
++
++    cursor.execute("SELECT c.company_id, c.company_name FROM company c JOIN vendor_company_rel v ON v.client_id = c.company_id WHERE v.vendor_id = ?", (vid, ))
++
++    clients = cursor.fetchall()
++    print(clients)
++    cursor.execute("")
++    return render_template("vendorAddInvoice.html", clients=clients)
+ 
+ @app.route('/vendorAddInvoice', methods=['POST'])
+ def vendorAddInvoiceAction():
+diff --git a/createdb.py b/createdb.py
+index fed8aa6..7ef7645 100644
+--- a/createdb.py
++++ b/createdb.py
+@@ -88,7 +88,7 @@ conn.execute('''
+                     invoice_status_id   INTEGER,
+                     FOREIGN KEY(invoice_id) 
+                         REFERENCES invoice(invoice_id),
+-                    FOREIGN KEY(invoice_status_id) 
++                    FOREIGN KEY(invoice_status_id_id) 
+                         REFERENCES invoice(invoice_status_id)
+                 );
+             ''')
+diff --git a/purgedb.py b/purgedb.py
+index 971be10..badcea3 100644
+--- a/purgedb.py
++++ b/purgedb.py
+@@ -12,3 +12,4 @@ cur.execute("DROP TABLE IF EXISTS company;")
+ cur.execute("DROP TABLE IF EXISTS authorization;")
+ cur.execute("DROP TABLE IF EXISTS vendor_company_rel;")
+ cur.execute("DROP TABLE IF EXISTS invoice;")
++cur.execute("DROP TABLE IF EXISTS invoice_state;")
+\ No newline at end of file
+diff --git a/random_sql.py b/random_sql.py
+index 5b36cbd..25ed073 100644
+--- a/random_sql.py
++++ b/random_sql.py
+@@ -3,6 +3,7 @@ import sqlite3
+ conn = sqlite3.connect('users.db')
+ cur = conn.cursor()
+ 
++cur.execute("DELETE FROM users where first_name = 'ff';")
+ 
+ cur.execute("DELETE FROM authorization where user_email = 'ff';")
+ data = cur.fetchall()
+diff --git a/templates/accountsApprovedInvoices.html b/templates/accountsApprovedInvoices.html
+new file mode 100644
+index 0000000..e69de29
+diff --git a/templates/adminAddUser.html b/templates/adminAddUser.html
+index cedd9fa..35abcc0 100644
+--- a/templates/adminAddUser.html
++++ b/templates/adminAddUser.html
+@@ -47,48 +47,50 @@
+             <form onsubmit="return validateForm()" action="/adminAddUser" method = 'POST' id="accountCreateForm" >
+                 <h1>Add Employee</h1>
+                 <div class="content">
+-                <div class="input-field">
+-                    <label for="fname"> First Name </label>
+-                    <input type="text" placeholder="First Name" name="fname" autocomplete="nope">
+-                </div>
+-                <div class="input-field">
+-                    <label for="lname">Last Name  </label>
+-                    <input type="text" placeholder="Last Name" name="lname" autocomplete="nope">
+-                </div>
+-                <div class="input-field">
+-                    <label for="contact"> Contact no </label>
+-                    <input type="text" placeholder="Contact no" name="contact" autocomplete="nope">
+-                </div>
+-                <div class="input-field">
+-                    <label for="email"> User Email </label>
+-                    <input type="text" placeholder="User Email" name="email" autocomplete="nope">
+-                </div>
+-                <div class="input-field">
+-                    <label for="pwd1"> Password </label>
+-                    <input type="password" placeholder="Password" name="pwd1" id="pwd1" autocomplete="nope">
+-                </div>
+-                <div class="input-field">
+-                    <label for="pwd2"> Confirm Password </label>
+-                    <input type="password" placeholder="Confirm Password" name="pwd2" id="pwd2" autocomplete="nope">
+-                </div>
+-                <div>
+-                    <input type="radio" id="approver" name="options" value="approver" >
+-                    <label for="approver">Approver</label>
+-                </div>
+-                
+-                <div>
+-                    <input type="radio" id="accounts" name="options" value="accounts" >
+-                    <label for="accounts">Accounts</label>
+-                </div>
+-                
+-                <span id="message2" style="color:red"> </span> <br><br>  
+-                    <!--<p  id="errorMessage"> The username or company name is already taken </p> -->
+-                <div>
+-                    <a href="/dashboard_admin" class="link">Back</a>
+-                </div>
+-                <div class="action">
+-                    <input type="submit" id="submitBtn" value = "Submit" class= "button" />
+-                    <input type="button" onclick="reset()" class = "button" value="Reset">
++                    <p style="color: red;">{{ errmsg }}</p>
++                    <div class="input-field">
++                        <label for="fname"> First Name </label>
++                        <input type="text" placeholder="First Name" name="fname" autocomplete="nope">
++                    </div>
++                    <div class="input-field">
++                        <label for="lname">Last Name  </label>
++                        <input type="text" placeholder="Last Name" name="lname" autocomplete="nope">
++                    </div>
++                    <div class="input-field">
++                        <label for="contact"> Contact no </label>
++                        <input type="text" placeholder="Contact no" name="contact" autocomplete="nope">
++                    </div>
++                    <div class="input-field">
++                        <label for="email"> User Email </label>
++                        <input type="text" placeholder="User Email" name="email" autocomplete="nope">
++                    </div>
++                    <div class="input-field">
++                        <label for="pwd1"> Password </label>
++                        <input type="password" placeholder="Password" name="pwd1" id="pwd1" autocomplete="nope">
++                    </div>
++                    <div class="input-field">
++                        <label for="pwd2"> Confirm Password </label>
++                        <input type="password" placeholder="Confirm Password" name="pwd2" id="pwd2" autocomplete="nope">
++                    </div>
++                    <div>
++                        <input type="radio" id="approver" name="options" value="approver" >
++                        <label for="approver">Approver</label>
++                    </div>
++                    
++                    <div>
++                        <input type="radio" id="accounts" name="options" value="accounts" >
++                        <label for="accounts">Accounts</label>
++                    </div>
++                    
++                    <span id="message2" style="color:red"> </span> <br><br>  
++                        <!--<p  id="errorMessage"> The username or company name is already taken </p> -->
++                    <div>
++                        <a href="/dashboard_admin" class="link">Back</a>
++                    </div>
++                    <div class="action">
++                        <input type="submit" id="submitBtn" value = "Submit" class= "button" />
++                        <input type="button" onclick="reset()" class = "button" value="Reset">
++                    </div>
+                 </div>
+             </form>
+         </div>
+diff --git a/templates/createAccount.html b/templates/createAccount.html
+index ea6da31..52a94df 100644
+--- a/templates/createAccount.html
++++ b/templates/createAccount.html
+@@ -11,11 +11,22 @@
+         <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100&display=swap" rel="stylesheet">
+         <link rel="stylesheet" href="{{url_for('static', filename='css/createAccount.css')}}">
+     </head>
+-    
++    <script>  
++        function verifyPassword() {  
++            var pw1 = document.getElementById("pwd1").value;
++            var pw2 = document.getElementById("pwd2").value;
++
++            if (pw1 != pw2) {
++                document.getElementById("message").innerHTML = "Passwords do not match!";  
++                return false;  
++            }
++            return true;
++        }
++    </script> 
+     <body>
+         <div class="create-account-container">
+             <div class="form-container">
+-                <form onsubmit="return validateForm()" action="/createAccount" method="POST" id="accountCreateForm">
++                <form onsubmit="return verifyPassword()" action="/createAccount" method="POST" id="accountCreateForm">
+                     <h1>Sign up</h1>
+                     <div class="columns">
+                         
+@@ -38,6 +49,9 @@
+                                 <label for="contact">Contact no</label>
+                                 <input type="text" placeholder="Contact no" name="contact" autocomplete="nope">
+                             </div>
++                            <div>
++                                <p style="color: red;" id="message"></p>
++                            </div>
+                             <div class="input-field">
+                                 <label for="pwd1">Password</label>
+                                 <input type="password" placeholder="Password" name="pwd1" id="pwd1" autocomplete="nope">
+@@ -68,7 +82,6 @@
+                               </div>
+                           </div>
+                       </div>
+-                      <span id="message2" style="color:red"> </span> <br>
+                       <div class="action-container">
+                           <div class="top_link">
+                               <a href="/" class = "link"><img src="https://drive.google.com/u/0/uc?id=16U__U5dJdaTfNGobB_OpwAJ73vM50rPV&export=download" alt=""> Return home</a>
+@@ -81,7 +94,6 @@
+                   </form>
+               </div>
+           </div>
+-          <script src="{{url_for('static', filename='js/createAccount.js')}}"></script>
+       </body>
+   </html>
+   
+diff --git a/templates/dashboard_accounts.html b/templates/dashboard_accounts.html
+index 168fb00..d366f69 100644
+--- a/templates/dashboard_accounts.html
++++ b/templates/dashboard_accounts.html
+@@ -1,4 +1,4 @@
+-{% extends 'base.html' %} {% block title %}Vendor Dashboard{% endblock %}
++{% extends 'base.html' %} {% block title %}Accounts Dashboard{% endblock %}
+ {% block head %}
+ <style>
+     .nav-container {
+@@ -25,9 +25,9 @@
+                                   <i class="fa-solid fa-arrow-right-from-bracket fa-rotate-180 fa-2x" style="color: #1a63e0;"></i>
+                                 </a>
+                               </div>
+-                            <a class="nav-link" href="/vendorAddInvoice">Create Invoice</a>
+-                            <a class="nav-link" href="#">Item 2</a>
+-                            <a class="nav-link" href="#">Item 3</a>
++                            <a class="nav-link" href="/accountsApprovedInvoices">Approved Invoices</a>
++                            <a class="nav-link" href="/accountsPayedInvoices">Payment Completed Invoices</a>
++                            <a class="nav-link" href="/accountsPayRejectInvoices">Payment Rejected Invoices</a>
+                         </nav>
+                     </div>
+                 </div>
+diff --git a/templates/dashboard_admin.html b/templates/dashboard_admin.html
+index 0fa071f..7ecc03b 100644
+--- a/templates/dashboard_admin.html
++++ b/templates/dashboard_admin.html
+@@ -64,12 +64,15 @@ head %}
+                             <td>{{ cell }}</td>
+                             {% endfor %}
+                             <td>
+-                                {% if row[4] != "Admin"%}
+-                                <button
+-                                    class="btn btn-danger row-action-btn"
+-                                    data-row-id="{{ row[0] }}">
+-                                    Delete
+-                                </button>
++                                {% if row[0] != 1%}
++                                <form action="/adminDeleteUser" method="post">
++                                    <button
++                                        type="submit"
++                                        class="btn btn-danger row-action-btn"
++                                        data-row-id="{{ row[0] }}">
++                                        Delete
++                                    </button>
++                                </form>
+                                 {% endif %}
+                             </td>
+                         </tr>
+diff --git a/templates/dashboard_vendor.html b/templates/dashboard_vendor.html
+index 7f52a7d..2c70c91 100644
+--- a/templates/dashboard_vendor.html
++++ b/templates/dashboard_vendor.html
+@@ -26,8 +26,6 @@
+                                 </a>
+                               </div>
+                             <a class="nav-link" href="/vendorAddInvoice">Create Invoice</a>
+-                            <a class="nav-link" href="#">Item 2</a>
+-                            <a class="nav-link" href="#">Item 3</a>
+                         </nav>
+                     </div>
+                 </div>
+diff --git a/templates/vendorAddInvoice.html b/templates/vendorAddInvoice.html
+index b2a4cac..ace4173 100644
+--- a/templates/vendorAddInvoice.html
++++ b/templates/vendorAddInvoice.html
+@@ -23,8 +23,6 @@
+                                 </a>
+                               </div>
+                             <a class="nav-link" href="/vendorAddInvoice">Create Invoice</a>
+-                            <a class="nav-link" href="#">Item 2</a>
+-                            <a class="nav-link" href="#">Item 3</a>
+                         </nav>
+                     </div>
+                 </div>
+@@ -32,35 +30,40 @@
+             <form onsubmit="return validateForm()" action="/vendorAddInvoice" method="POST" id="invoiceCreateForm" enctype="multipart/form-data">
+                 <h1>Add Invoice</h1>
+                 <div class="content">
+-                  <!-- <div class="input-field">
+-                    <label for="invoice_no">Invoice Number</label>
+-                    <input type="text" placeholder="Invoice Number" name="invoice_no" autocomplete="nope">
+-                  </div> -->
+-                  <div class="input-field">
+-                    <label for="invoice_date">Invoice Date</label>
+-                    <input type="date" name="invoice_date" autocomplete="nope">
+-                  </div>
+-                  <div class="input-field">
+-                    <label for="invoice_amt">Invoice Amount</label>
+-                    <input type="text" placeholder="Invoice Amount" name="invoice_amt" autocomplete="nope">
+-                  </div>
+-                  <div class="input-field">
+-                    <label for="invoice_client">Client ID</label>
+-                    <input type="text" placeholder="Client ID" name="invoice_client" autocomplete="nope">
+-                  </div>
+-                  <div class="input-field">
+-                    <label for="file">Invoice File</label>
+-                    <input type="file" name="file" accept=".pdf">
+-                  </div>
+-                  <span id="message2" style="color:red"></span> <br><br>  
+-                  <!--<p id="errorMessage">The username or company name is already taken</p>-->
+-                  <div>
+-                    <a href="/dashboard_admin" class="link">Back</a>
+-                  </div>
+-                  <div class="action">
+-                    <input type="submit" id="submitBtn" value="Submit" class="button" />
+-                    <input type="button" onclick="reset()" class="button" value="Reset">
+-                  </div>
++                    <!-- <div class="input-field">
++                        <label for="invoice_no">Invoice Number</label>
++                        <input type="text" placeholder="Invoice Number" name="invoice_no" autocomplete="nope">
++                    </div> -->
++                    <div class="input-field">
++                        <label for="invoice_date">Invoice Date</label>
++                        <input type="date" name="invoice_date" autocomplete="nope">
++                    </div>
++                    <div class="input-field">
++                        <label for="invoice_amt">Invoice Amount</label>
++                        <input type="text" placeholder="Invoice Amount" name="invoice_amt" autocomplete="nope">
++                    </div>
++                    <div class="input-field">
++                        <label for="invoice_client">Client</label>
++                        <select name="invoice_client" id="invoice_client" required>
++                            <option value="">Select Client</option>
++                            {% for client in clients %}
++                                <option value="{{client[0]}}">{{client[1]}}</option>
++                            {% endfor %}
++                        </select>
++                    </div>
++                    <div class="input-field">
++                        <label for="file">Invoice File</label>
++                        <input type="file" name="file" accept=".pdf">
++                    </div>
++                    <span id="message2" style="color:red"></span> <br><br>  
++                    <!--<p id="errorMessage">The username or company name is already taken</p>-->
++                    <div>
++                        <a href="/dashboard_admin" class="link">Back</a>
++                    </div>
++                    <div class="action">
++                        <input type="submit" id="submitBtn" value="Submit" class="button" />
++                        <input type="button" onclick="reset()" class="button" value="Reset">
++                    </div>
+                 </div>
+               </form>
+               
