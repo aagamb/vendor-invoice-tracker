@@ -39,8 +39,8 @@
                             {% for column_name in column_names %}
                             <th>{{ column_name }}</th>
                             {% endfor %}
-                            <th>Action</th>
-                            <th> Action2 </th>
+                            <th>Proceed Payment</th>
+                            <th>Reject Payment</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -49,20 +49,20 @@
                             {% for cell in row %}
                             <td>{{ cell }}</td>
                             {% endfor %}
+                            
                             <td>
-                                <button
-                                    class="btn btn-danger row-action-btn approve"
-                                    data-row-id="{{ row[0] }}">
-                                    Approve
-                                </button>
+                                <form action="/accountsApproved" method="post">
+                                    <input type="hidden" name="row_index" value="{{ row[0] }}">
+                                    <input type="submit" class="btn btn-danger row-action-btn approve" value="Pay">
+                                </form>
                             </td>
                             <td>
-                                <button
-                                    class="btn btn-danger row-action-btn reject"
-                                    data-row-id="{{ row[0] }}">
-                                    Reject
-                                </button>
+                                <form action="/accountsRejected" method="post">
+                                    <input type="hidden" name="row_index" value="{{ row[0] }}">
+                                    <input type="submit" class="btn btn-danger row-action-btn reject" value="Reject">
+                                </form>
                             </td>
+                           
                         </tr>
                         {% endfor %}
                     </tbody>

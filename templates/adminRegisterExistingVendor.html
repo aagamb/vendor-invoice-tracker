@@ -31,10 +31,10 @@
                                 <a class="nav-link" href="/dashboard_admin">
                                     Employees
                                 </a>
-                                <a class="nav-link" href="/adminListVendors" style="color:brown">
+                                <a class="nav-link" href="/adminListVendors">
                                     Vendors
                                 </a>
-                                <a class="nav-link" href="/adminRegisterExistingVendor">
+                                <a class="nav-link" href="/adminRegisterExistingVendor" style="color:brown">
                                     Existing Vendor Registeraion
                                 </a>
                                 <a class="nav-link" href="/adminRegisterVendor">
@@ -67,6 +67,17 @@
                             {% endfor %}
                         </tbody>
                     </table>
+                    <div class="login-form">
+                        <form action="/adminRegisterExistingVendor" method="post">
+                            <div class="input-field">
+                                <label for="vid"> Enter Vendor ID </label>
+                                <input type="text" placeholder="Vendor ID" name="vid" id="vid" autocomplete="nope">
+                            </div>
+                            <div class="action">
+                                <input type="submit" id="submitBtn" value="Submit" class="button" />
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>

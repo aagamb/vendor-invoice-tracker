@@ -10,60 +10,63 @@
     <div
                     class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse"
                     id="sidebar">
-                    <div class="nav-container">
-                        
-                        <nav class="nav nav-pills flex-column">
-                            <!-- Add your navigation items here -->
-                            <div class="icon-container">
-                                <a href="/dashboard_admin">
-                                    <i class="fa-solid fa-house fa-2x" style="color: #1a63e0;"></i>
-                                </a>
-                                <a href="/">
-                                  <i class="fa-solid fa-arrow-right-from-bracket fa-rotate-180 fa-2x" style="color: #1a63e0;"></i>
-                                </a>
-                              </div>
-                            
-                            <a class="nav-link" href="/adminAddUser">
-                                Add Company Members
-                            </a>
-                            <a class="nav-link" href="/dashboard_admin">
-                                Employees
-                            </a>
-                            <a class="nav-link" href="/adminListVendors">
-                                Vendors
-                            </a>
-                            <a class="nav-link" href="/adminRegisterVendor">
-                                Vendor Registeraion
-                            </a>
-                            <a class="nav-link" href="/adminModifyUser">
-                                Modify Users
-                            </a>
-                            
-                        </nav>
-                    </div>
+        <div class="nav-container">
+            
+            <nav class="nav nav-pills flex-column">
+                <!-- Add your navigation items here -->
+                <div class="icon-container">
+                    <a href="/dashboard_admin">
+                        <i class="fa-solid fa-house fa-2x" style="color: #1a63e0;"></i>
+                    </a>
+                    <a href="/">
+                        <i class="fa-solid fa-arrow-right-from-bracket fa-rotate-180 fa-2x" style="color: #1a63e0;"></i>
+                    </a>
                 </div>
-        <div class="login-form">
-            <form onsubmit="return validateForm()" action="/adminModifyUser" method = 'POST' id="accountCreateForm" >
-                <h1>Modify Employee Details</h1>
-                <div class="content">
-                <div class="input-field">
-                    <label for="user_id"> User ID to modify</label>
-                    <input type="text" placeholder="User ID" name="user_id" autocomplete="nope">
-                </div>
-
-                <span id="message2" style="color:red"> </span> <br><br>  
-                    <!--<p  id="errorMessage"> The username or company name is already taken </p> -->
-                <div>
-                    <a href="/dashboard_admin" class="link">Back</a>
-                </div>
-                <div class="action">
-                    <input type="submit" id="submitBtn" value = "Submit" class= "button"  >
-                    <input type="button" onclick="reset()" class = "button" value="Reset">
-                </div>
-            </form>
+                
+                <a class="nav-link" href="/adminAddUser">
+                    Add Company Members
+                </a>
+                <a class="nav-link" href="/dashboard_admin">
+                    Employees
+                </a>
+                <a class="nav-link" href="/adminListVendors">
+                    Vendors
+                </a>
+                <a class="nav-link" href="/adminRegisterExistingVendor">
+                    Existing Vendor Registeraion
+                </a>
+                <a class="nav-link" href="/adminRegisterVendor">
+                    New Vendor Registeraion
+                </a>
+                <a class="nav-link" href="/adminModifyUser" style="color:brown">
+                    Modify Users
+                </a>
+                
+            </nav>
         </div>
-        <!-- partial -->
-        <script  src="{{url_for('static', filename='js/createAccount.js')}}"></script>
+    </div>
+    <div class="login-form">
+        <form onsubmit="return validateForm()" action="/adminModifyUser" method = 'POST' id="accountCreateForm" >
+            <h1>Modify Employee Details</h1>
+            <div class="content">
+            <div class="input-field">
+                <label for="user_id"> User ID to modify</label>
+                <input type="text" placeholder="User ID" name="user_id" autocomplete="nope">
+            </div>
+
+            <span id="message2" style="color:red"> </span> <br><br>  
+                <!--<p  id="errorMessage"> The username or company name is already taken </p> -->
+            <div>
+                <a href="/dashboard_admin" class="link">Back</a>
+            </div>
+            <div class="action">
+                <input type="submit" id="submitBtn" value = "Submit" class= "button"  >
+                <input type="button" onclick="reset()" class = "button" value="Reset">
+            </div>
+        </form>
+    </div>
+    <!-- partial -->
+    <script  src="{{url_for('static', filename='js/createAccount.js')}}"></script>
 
     {% endblock %}
 
