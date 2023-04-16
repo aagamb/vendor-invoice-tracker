@@ -74,6 +74,10 @@ def sendEmail(rec, company_name, invoice_no, invoice_amt, invoice_date,  status,
     msg.body = body
     mail.send(msg)
 
+@app.template_filter()
+def with_index(iterable):
+    return enumerate(iterable)
+
 @app.route('/')
 def index():
     return render_template("login.html")
@@ -103,7 +107,7 @@ def storeAccountData():
     conn.commit()
     auth_id = cur.lastrowid
     print("auth_id: ", auth_id)
-    cur.execute("INSERT INTO company(company_name) VALUES (?);", (cname, ))
+    cur.execute("INSERT INTO company(company_name, company_addr, gstno, company_contact) VALUES (?, ?, ?, ?);", (cname, company_addr, gstno, company_contact))
     conn.commit()
     company_id = cur.lastrowid
     print("company_id: ", company_id)
@@ -367,7 +371,7 @@ def storeExistingVendorAccountData():
 
 @app.route('/adminDeleteUser', methods=['POST'])
 def adminDeleteUser():
-    row_id = request.form['data-row-id']
+    row_id = request.form['row_index']
     conn = sqlite3.connect('users.db')
     cur = conn.cursor()
     print("deleting user", row_id)
@@ -377,7 +381,7 @@ def adminDeleteUser():
     conn.close()
 
     return redirect(url_for("dashboard_admin"))
-
+    
 @app.route("/adminModifyUser")
 def adminModifyUser():
     return render_template("adminModifyUser.html")
@@ -484,7 +488,7 @@ def download_file(invoice_id):
 
 @app.route("/approverApproved", methods=['POST'])
 def approverApprovedAction():
-    row_id = request.form['data-row-id']
+    row_id = request.form['row_index']
     
     conn = sqlite3.connect('users.db')
     cur = conn.cursor()
@@ -504,8 +508,10 @@ def approverApprovedAction():
     cur.execute("select invoice_id, invoice_amt, invoice_date, invoice_status_id from invoice where invoice_id = ?;", (row_id,))
     invoice_id, invoice_amt, invoice_date, invoice_status_id = cur.fetchone()
     print("invoice status_id is: ", invoice_status_id)
-    sendEmail(company_contact, company_name, invoice_id, invoice_amt, invoice_date, invoice_status_id)
-
+    try:
+        sendEmail(company_contact, company_name, invoice_id, invoice_amt, invoice_date, invoice_status_id)
+    except:
+        print("Email sent to email id: ", company_contact)
     cur.close()
     conn.close()
     
@@ -513,7 +519,7 @@ def approverApprovedAction():
     
 @app.route("/approverRejected", methods=['POST'])
 def approverRejectedAction():
-    row_id = request.form['data-row-id']
+    row_id = request.form['row_index']
     
     conn = sqlite3.connect('users.db')
     cur = conn.cursor()
@@ -556,9 +562,7 @@ def dashboard_vendor():
     column_names = [col[1] for col in cursor.fetchall()]
     column_names = ["Invoice Date", "Invoice Amount", "Company Invoiced ID", "Invoice Status"]
 
-    cursor.execute("select company_name from company where company_id = ?", (company_id,))
-    # cname = cursor.fetchall()[0]
-    # Read the entire table
+
     cursor.execute("select invoice_date, invoice_amt, invoice_client, invoice_status_id from invoice join (select * from company where company_id=?)", (company_id,))
     data = cursor.fetchall()
     
@@ -637,7 +641,7 @@ def vendorAddInvoiceAction():
 
 @app.route('/vendorDeleteInvoice', methods=['POST'])
 def vendorDeleteInvoice():
-    row_id = request.form['data-row-id']
+    row_id = request.form['row_index']
     conn = sqlite3.connect('users.db')
     cur = conn.cursor()
     print("deleting user", row_id, file = sys.stderr)
@@ -679,7 +683,7 @@ def dashboard_accounts():
 
 @app.route("/accountsApproved", methods=['POST'])
 def accountsApprovedAction():
-    row_id = request.form['data-row-id']
+    row_id = request.form['row_index']
     
     conn = sqlite3.connect('users.db')
     cur = conn.cursor()
@@ -710,7 +714,7 @@ def accountsApprovedAction():
     
 @app.route("/accountsRejected", methods=['POST'])
 def accountsRejectedAction():
-    row_id = request.form['data-row-id']
+    row_id = request.form['row_index']
     
     conn = sqlite3.connect('users.db')
     cur = conn.cursor()

@@ -51,18 +51,16 @@
                             {% endfor %}
                             
                             <td>
-                                <button
-                                    class="btn btn-danger row-action-btn approve"
-                                    data-row-id="{{ row[0] }}">
-                                    Pay
-                                </button>
+                                <form action="/accountsApproved" method="post">
+                                    <input type="hidden" name="row_index" value="{{ row[0] }}">
+                                    <input type="submit" class="btn btn-danger row-action-btn approve" value="Pay">
+                                </form>
                             </td>
                             <td>
-                                <button
-                                    class="btn btn-danger row-action-btn reject"
-                                    data-row-id="{{ row[0] }}">
-                                    Reject
-                                </button>
+                                <form action="/accountsRejected" method="post">
+                                    <input type="hidden" name="row_index" value="{{ row[0] }}">
+                                    <input type="submit" class="btn btn-danger row-action-btn reject" value="Reject">
+                                </form>
                             </td>
                            
                         </tr>

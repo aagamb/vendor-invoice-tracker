@@ -69,12 +69,8 @@ head %}
                             <td>
                                 {% if row[4] != "Admin" %}
                                 <form action="/adminDeleteUser" method="post">
-                                    <button
-                                        type="submit"
-                                        class="btn btn-danger row-action-btn"
-                                        data-row-id="{{ row[0] }}">
-                                        Delete
-                                    </button>
+                                    <input type="hidden" name="row_index" value="{{ row[0] }}">
+                                    <input type="submit" class="btn btn-danger row-action-btn" value="Delete">
                                 </form>
                                 {% endif %}
                             </td>

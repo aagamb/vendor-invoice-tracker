@@ -61,18 +61,16 @@
                                 <!-- </form> -->
                             </td>
                             <td>
-                                <button
-                                    class="btn btn-danger row-danger-btn approve"
-                                    data-row-id="{{ row[0] }}">
-                                    Approve
-                                </button>
+                                <form action="/approverApproved" method="post">
+                                    <input type="hidden" name="row_index" value="{{ row[0] }}">
+                                    <input type="submit" class="btn btn-danger row-danger-btn approve" value="Approve">
+                                </form>
                             </td>
                             <td>
-                                <button
-                                    class="btn btn-danger row-danger-btn reject"
-                                    data-row-id="{{ row[0] }}">
-                                    Reject
-                                </button>
+                                <form action="/approverRejected" method="post">
+                                    <input type="hidden" name="row_index" value="{{ row[0] }}">
+                                    <input type="submit" class="btn btn-danger row-danger-btn reject" value="Reject">
+                                </form>
                             </td>
                         </tr>
                         {% endfor %}
