@@ -25,12 +25,14 @@
                                       <i class="fa-solid fa-arrow-right-from-bracket fa-rotate-180 fa-2x" style="color: #1a63e0;"></i>
                                     </a>
                                   </div>
-                                <a class="nav-link" href="/adminAddUser">
-                                    Add Company Members
-                                </a>
+        
                                 <a class="nav-link" href="/dashboard_admin">
                                     Employees
                                 </a>
+                                <a class="nav-link" href="/adminAddUser"  >
+                                    Add Employee
+                                </a>
+    
                                 <a class="nav-link" href="/adminListVendors">
                                     Vendors
                                 </a>
@@ -97,7 +99,7 @@
     
                 $(".row-action-btn").on("click", function () {
                     const row_id = $(this).data("row-id");
-                    alert("Button clicked for user_id: " + row_id);
+                  //  alert("Button clicked for user_id: " + row_id);
     
                     $.ajax({
                         url: "/adminListVendors",

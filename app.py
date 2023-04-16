@@ -212,10 +212,10 @@ def dashboard_admin():
     cursor = conn.cursor()
     
     # Add column names to the cursor
-    column_names = ["User Id", "First Name", "Last Name", "Contact", "User Role"]
+    column_names = ["User Id", "Email", "First Name", "Last Name", "Contact", "User Role"]
 
     # Read the entire table
-    cursor.execute("""SELECT u.user_id, u.first_name, u.last_name, u.contact, r.role FROM users u JOIN role r ON u.user_role = r.role_id WHERE u.company_id=?""", (company_id,))
+    cursor.execute("""SELECT u.user_id, au.user_email, u.first_name, u.last_name, u.contact, r.role FROM users u JOIN authorization au ON u.user_id = au.auth_id JOIN role r ON u.user_role = r.role_id WHERE u.company_id=?""", (company_id,))
     data = cursor.fetchall()
     print(data)
     
@@ -459,18 +459,53 @@ def dashboard_approver():
     # Add column names to the cursor
     cursor.execute("PRAGMA table_info(invoice)")
     column_names = [col[1] for col in cursor.fetchall()]
-    column_names = ["Invoice Id", "Invoice Date", "Invoice Amount", "Invoiced By (invoice_vendor)"]
+    column_names = ["Invoice Id", "Invoice Number" , "Invoice Date", "Invoice Amount", "Vendor Name"]
 
     # Read the entire table
-    cursor.execute("SELECT invoice_id, invoice_date, invoice_amt, invoice_vendor FROM invoice WHERE invoice_client=? AND invoice_status_id=3", (company_id,))
+    cursor.execute("SELECT i.invoice_id, i.invoice_no, i.invoice_date, i.invoice_amt, c.company_name FROM invoice i JOIN company c ON i.invoice_vendor = c.company_id WHERE invoice_client=? AND invoice_status_id=3", (company_id,))
     data = cursor.fetchall()
 
     conn.close()
-    return render_template('dashboard_approver.html', column_names= column_names, data = data)
+    return render_template('dashboard_approver.html', column_names= column_names, data = data , showbutton = 'true',  state_message = 'Approval Pending')
 
-@app.route('/downloadFile/<invoice_id>', methods = ['POST'])
-def download_file(invoice_id):
-    # row_id = request.form['data-row-id']
+@app.route('/approverApproved')
+def approver_approved_invoices():
+    conn = sqlite3.connect('users.db')
+    cursor = conn.cursor()
+    
+    # Add column names to the cursor
+    cursor.execute("PRAGMA table_info(invoice)")
+    column_names = [col[1] for col in cursor.fetchall()]
+    column_names = ["Invoice Id",  "Invoice Number" , "Invoice Date", "Invoice Amount", "Vendor Name", "Invoice Status"]
+
+    # Read the entire table
+    cursor.execute("SELECT i.invoice_id, i.invoice_no, i.invoice_date, i.invoice_amt, c.company_name, ist.invoice_status FROM invoice i JOIN company c ON i.invoice_vendor = c.company_id  JOIN invoice_status ist ON i.invoice_status_id = ist.invoice_status_id WHERE i.invoice_client=? AND i.invoice_status_id=1 OR i.invoice_status_id=4 OR i.invoice_status_id=5", (company_id,))
+    data = cursor.fetchall()
+
+    conn.close()
+    return render_template('dashboard_approver.html', column_names= column_names, data = data,  showbutton = 'false',state_message = 'Approved Invoices')
+
+@app.route('/approverRejected')
+def approver_rejected_invoices():
+    conn = sqlite3.connect('users.db')
+    cursor = conn.cursor()
+    
+    # Add column names to the cursor
+    cursor.execute("PRAGMA table_info(invoice)")
+    column_names = [col[1] for col in cursor.fetchall()]
+    column_names = ["Invoice Id",  "Invoice Number" , "Invoice Date", "Invoice Amount", "Vendor Name", "Invoice Status"]
+
+    # Read the entire table
+    cursor.execute("SELECT i.invoice_id, i.invoice_no, i.invoice_date, i.invoice_amt, c.company_name, ist.invoice_status FROM invoice i JOIN company c ON i.invoice_vendor = c.company_id JOIN invoice_status ist ON i.invoice_status_id = ist.invoice_status_id  WHERE i.invoice_client=? AND i.invoice_status_id=2", (company_id,))
+    data = cursor.fetchall()
+
+    conn.close()
+    return render_template('dashboard_approver.html', column_names= column_names, data = data,  showbutton = 'false', state_message = 'Invoices Rejected')
+
+
+@app.route('/downloadFile', methods = ['POST'])
+def download_file():
+    invoice_id = request.form['row_index']
     print("Requested invoice", invoice_id)
     conn = sqlite3.connect('users.db')
     cur = conn.cursor()
@@ -480,8 +515,8 @@ def download_file(invoice_id):
 
     cur.close()
     conn.close()
-    uploads = "/invoice"
-    path = "/invoice/"+data
+   
+    path = data
     # return send_from_directory(directory=uploads, filename=data)
     return send_file(path, as_attachment=True)
 
@@ -557,13 +592,13 @@ def dashboard_vendor():
     conn = sqlite3.connect('users.db')
     cursor = conn.cursor()
     
-    # Add column names to the cursor
-    cursor.execute("PRAGMA table_info(invoice)")
-    column_names = [col[1] for col in cursor.fetchall()]
-    column_names = ["Invoice Date", "Invoice Amount", "Company Invoiced ID", "Invoice Status"]
+    # # Add column names to the cursor
+    # cursor.execute("PRAGMA table_info(invoice)")
+    # column_names = [col[1] for col in cursor.fetchall()]
+    column_names = ["Invoice Id" , "Invoice No","Invoice Date", "Invoice Amount", "Company", "Invoice Status"]
 
 
-    cursor.execute("select invoice_date, invoice_amt, invoice_client, invoice_status_id from invoice join (select * from company where company_id=?)", (company_id,))
+    cursor.execute("select i.invoice_id, i.invoice_no, i.invoice_date, i.invoice_amt, c.company_name, ist.invoice_status from invoice i join company  c ON i.invoice_client = c.company_id JOIN invoice_status ist ON i.invoice_status_id = ist.invoice_status_id WHERE i.invoice_vendor=?", (company_id,))
     data = cursor.fetchall()
     
     print(data, file = sys.stderr)
@@ -617,7 +652,7 @@ def vendorAddInvoiceAction():
         )
         conn.commit()
 
-        #get invoice details
+        #get invoice dPendingetails
         cursor.execute('''SELECT invoice_id FROM invoice WHERE invoice_id = (SELECT MAX(invoice_id) FROM invoice)''')
         row_id = cursor.fetchone()[0]
         print(row_id)
@@ -663,23 +698,23 @@ def dashboard_accounts():
     # Add column names to the cursor
     cursor.execute("PRAGMA table_info(invoice)")
     column_names = [col[1] for col in cursor.fetchall()]
-    column_names = ["Invoice Id", "Invoice Date", "Invoice Amount", "Company Invoiced ID", "Invoice Status"]
+    column_names = ["Invoice Id", "Invoice Date", "Invoice Amount", "Vendor Name", "Invoice Status"]
 
     # cursor.execute("select company_name from company where company_id = ?", (company_id,))
     # cname = cursor.fetchall()[0]
     # Read the entire table
     cursor.execute("""SELECT i.invoice_id, i.invoice_date, i.invoice_amt, c.company_name, ist.invoice_status 
                       FROM invoice i
-                      JOIN company c ON i.invoice_client=c.company_id
+                      JOIN company c ON i.invoice_vendor=c.company_id
                       JOIN invoice_status ist ON i.invoice_status_id=ist.invoice_status_id
-                      WHERE i.invoice_client=?""", (company_id,))
+                      WHERE ist.invoice_status_id =? AND i.invoice_client=?""", (1, company_id,))
     data = cursor.fetchall()
     
     print(data, file = sys.stderr)
 
     # cursor.close()
     conn.close()
-    return render_template("dashboard_accounts.html", column_names = column_names, data = data )
+    return render_template("dashboard_accounts.html", column_names = column_names, data = data , state_message = 'Payment Pending')
 
 @app.route("/accountsApproved", methods=['POST'])
 def accountsApprovedAction():
@@ -745,34 +780,34 @@ def accountsApprovedInvoices():
     conn = sqlite3.connect('users.db')
     cursor = conn.cursor()
 
-    column_names = ["Invoice Id", "Invoice Date", "Invoice Amount", "Company Invoiced ID", "Invoice Status"]
+    column_names = ["Invoice Id", "Invoice Date", "Invoice Amount", "Vendor Name", "Invoice Status"]
 
     cursor.execute("""SELECT i.invoice_id, i.invoice_date, i.invoice_amt, c.company_name, ist.invoice_status 
                         FROM invoice i 
-                        JOIN company c ON i.invoice_client = c.company_id 
+                        JOIN company c ON i.invoice_vendor = c.company_id 
                         JOIN invoice_status ist ON i.invoice_status_id = ist.invoice_status_id 
                         WHERE c.company_id=? AND i.invoice_status_id=1;""", (company_id,))
     data = cursor.fetchall()
     conn.close()
 
-    return render_template("accountsFilteredInvoices.html", column_names = column_names, data = data )
+    return render_template("accountsFilteredInvoices.html", column_names = column_names, data = data , state_message = 'Payment Pending')
 
 @app.route("/accountsPayedInvoices")
 def accountsPayedInvoices():
     conn = sqlite3.connect('users.db')
     cursor = conn.cursor()
 
-    column_names = ["Invoice Id", "Invoice Date", "Invoice Amount", "Company Invoiced ID", "Invoice Status"]
+    column_names = ["Invoice Id", "Invoice Date", "Invoice Amount", "Vendor Name", "Invoice Status"]
 
     cursor.execute("""SELECT i.invoice_id, i.invoice_date, i.invoice_amt, c.company_name, ist.invoice_status 
                         FROM invoice i 
-                        JOIN company c ON i.invoice_client = c.company_id 
+                        JOIN company c ON i.invoice_vendor = c.company_id 
                         JOIN invoice_status ist ON i.invoice_status_id = ist.invoice_status_id 
                         WHERE c.company_id=? AND i.invoice_status_id=4;""", (company_id,))
     data = cursor.fetchall()
     conn.close()
 
-    return render_template("accountsFilteredInvoices.html", column_names = column_names, data = data )
+    return render_template("accountsFilteredInvoices.html", column_names = column_names, data = data, state_message = 'Payment Complete' )
 
 @app.route("/accountsPayRejectInvoices")
 def accountsPayRejectInvoices():
@@ -789,7 +824,7 @@ def accountsPayRejectInvoices():
     data = cursor.fetchall()
     conn.close()
 
-    return render_template("accountsFilteredInvoices.html", column_names = column_names, data = data )
+    return render_template("accountsFilteredInvoices.html", column_names = column_names, data = data, state_message = 'Payment Rejected' )
 
 
 #ACCOUNTS DASHBOARD NESTED PAGES ENDS--------------------------------
