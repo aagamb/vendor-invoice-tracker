@@ -786,7 +786,7 @@ def accountsApprovedInvoices():
                         FROM invoice i 
                         JOIN company c ON i.invoice_vendor = c.company_id 
                         JOIN invoice_status ist ON i.invoice_status_id = ist.invoice_status_id 
-                        WHERE c.company_id=? AND i.invoice_status_id=1;""", (company_id,))
+                        WHERE i.invoice_client=? AND i.invoice_status_id=1;""", (company_id,))
     data = cursor.fetchall()
     conn.close()
 
@@ -803,7 +803,7 @@ def accountsPayedInvoices():
                         FROM invoice i 
                         JOIN company c ON i.invoice_vendor = c.company_id 
                         JOIN invoice_status ist ON i.invoice_status_id = ist.invoice_status_id 
-                        WHERE c.company_id=? AND i.invoice_status_id=4;""", (company_id,))
+                        WHERE i.invoice_client=? AND i.invoice_status_id=4;""", (company_id,))
     data = cursor.fetchall()
     conn.close()
 
@@ -820,7 +820,7 @@ def accountsPayRejectInvoices():
                         FROM invoice i 
                         JOIN company c ON i.invoice_client = c.company_id 
                         JOIN invoice_status ist ON i.invoice_status_id = ist.invoice_status_id 
-                        WHERE c.company_id=? AND i.invoice_status_id=5;""", (company_id,))
+                        WHERE i.invoice_client=? AND i.invoice_status_id=5;""", (company_id,))
     data = cursor.fetchall()
     conn.close()
 
